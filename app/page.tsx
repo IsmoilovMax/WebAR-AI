@@ -1,4 +1,3 @@
-import Image from "next/image";
 import AICamera from "./components/AICamera";
 
 export default function Home() {
