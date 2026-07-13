@@ -1,13 +1,14 @@
-import Image from "next/image";
-import AICamera from "./components/AICamera";
+import FaceDetectorAI from "./components/FaceDetector";
 
 export default function Home() {
   return (
     <main>
       <h1>
-        AI Vision Camera
+        AI Security Camera
       </h1>
-      <AICamera/>
+      <FaceDetectorAI />
     </main>
-  );
+
+  )
+
 }
