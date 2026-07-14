@@ -1,20 +1,10 @@
 "use client";
 
-import {
-  useEffect,
-  useRef
-} from "react";
-import {
-  PoseLandmarker,
-  FilesetResolver
-}
-  from "@mediapipe/tasks-vision";
-
+import { useEffect, useRef } from "react";
+import { PoseLandmarker, FilesetResolver } from "@mediapipe/tasks-vision";
 
 export default function HumanPose() {
-
-  const videoRef =
-    useRef<HTMLVideoElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     async function start() {
@@ -25,24 +15,22 @@ export default function HumanPose() {
           }
         });
 
-      videoRef.current!.srcObject =
-        stream;
+      videoRef.current!.srcObject = stream;
 
       const vision =
         await FilesetResolver.forVisionTasks(
           "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
         );
 
-      const pose =
-        await PoseLandmarker.createFromOptions(
-          vision,
-          {
-            baseOptions: {
-              modelAssetPath:
-                "/pose_landmarker.task"
-            },
-            runningMode: "VIDEO"
-          });
+      const pose = await PoseLandmarker.createFromOptions(
+        vision,
+        {
+          baseOptions: {
+            modelAssetPath:
+              "/pose_landmarker.task"
+          },
+          runningMode: "VIDEO"
+        });
 
       setInterval(() => {
         const result =
@@ -56,8 +44,6 @@ export default function HumanPose() {
     start();
   }, []);
 
-
-
   return (
     <video
       ref={videoRef}
@@ -68,5 +54,4 @@ export default function HumanPose() {
       }}
     />
   )
-
 }

@@ -8,7 +8,5 @@ export default function Home() {
       </h1>
       <FaceDetectorAI />
     </main>
-
   )
-
 }
