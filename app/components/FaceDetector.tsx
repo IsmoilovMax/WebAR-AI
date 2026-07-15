@@ -58,10 +58,17 @@ export default function FaceDetectorAI() {
             "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/wasm"
           );
 
+          // detectorRef.current = await FaceDetector.createFromOptions(vision, {
+          //   baseOptions: {
+          //     modelAssetPath: "/models/blaze_face_full_range.tflite",
+          //     delegate: "GPU",
+          //   },
+          //   runningMode: "VIDEO",
+          // });
           detectorRef.current = await FaceDetector.createFromOptions(vision, {
             baseOptions: {
               modelAssetPath: "/models/blaze_face_full_range.tflite",
-              delegate: "GPU",
+              delegate: "CPU", // GPU o'rniga
             },
             runningMode: "VIDEO",
           });
