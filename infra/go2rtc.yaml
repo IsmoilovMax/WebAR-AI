@@ -1,0 +1,39 @@
+# go2rtc bazaviy konfiguratsiyasi.
+#
+# Kamera oqimlari bu yerga QO'LDA yozilmaydi. Web ilova kamera qo'shilganda
+# go2rtc REST API ga murojaat qiladi (PUT /api/streams), shunda restart
+# kerak bo'lmaydi. Bu fayl faqat serverning o'zini sozlaydi.
+#
+# Sinov uchun qo'lda oqim qo'shmoqchi bo'lsangiz:
+# streams:
+#   test_cam:
+#     - rtsp://user:pass@192.168.1.64:554/Streaming/Channels/102
+
+api:
+  listen: ":1984"
+  # Ishlab chiqarishda buni lokal tarmoq bilan cheklang yoki teskari proksi
+  # ortiga qo'ying - go2rtc da autentifikatsiya yo'q.
+  origin: "*"
+
+rtsp:
+  listen: ":8554"
+
+webrtc:
+  listen: ":8555"
+  # Docker port mapping (Windows/Mac). Brauzer localhost orqali ulanadi.
+  candidates:
+    - 127.0.0.1:8555
+
+# H.265 chiqaradigan Hikvision kameralar uchun. Aksariyat brauzerlar H.265 ni
+# WebRTC da qo'llab-quvvatlamaydi, shuning uchun kerak bo'lsa transkodlanadi.
+# Transkodlash GPU/CPU yeydi - iloji bo'lsa kamerani H.264 ga o'tkazing.
+ffmpeg:
+  bin: ffmpeg
+
+log:
+  level: info
+streams:
+  cam_3292afd08d5543daa7fb6b995a83020b_sub:
+    - rtsp://admin:zebeng012%40%40@192.168.0.64:554/Streaming/Channels/102
+  cam_3292afd08d5543daa7fb6b995a83020b_main:
+    - ffmpeg:rtsp://admin:zebeng012%40%40@192.168.0.64:554/Streaming/Channels/101#video=h264

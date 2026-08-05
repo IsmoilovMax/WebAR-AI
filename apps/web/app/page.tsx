@@ -1,12 +1,5 @@
-import FaceDetectorAI from "./components/FaceDetector";
+import { redirect } from "next/navigation";
 
 export default function Home() {
-  return (
-    <main>
-      <h1>
-        AI Security Camera
-      </h1>
-      <FaceDetectorAI />
-    </main>
-  )
+  redirect("/live");
 }

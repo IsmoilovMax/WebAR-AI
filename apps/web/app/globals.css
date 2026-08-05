@@ -1,26 +1,100 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Video nazorat paneli uzoq soatlar davomida, ko'pincha qorong'i xonada
+ * ochiq turadi. Shuning uchun sukut bo'yicha to'q mavzu: yorug' fon
+ * kadrlar bilan raqobatlashadi va operatorni charchatadi.
+ */
+
+@theme {
+  --color-surface-0: oklch(0.16 0.012 265);
+  --color-surface-1: oklch(0.2 0.014 265);
+  --color-surface-2: oklch(0.25 0.016 265);
+  --color-surface-3: oklch(0.31 0.018 265);
+
+  --color-content-primary: oklch(0.97 0.005 265);
+  --color-content-secondary: oklch(0.75 0.012 265);
+  --color-content-muted: oklch(0.6 0.014 265);
+
+  --color-brand: oklch(0.68 0.16 250);
+  --color-brand-strong: oklch(0.6 0.18 250);
+
+  --color-critical: oklch(0.63 0.23 22);
+  --color-high: oklch(0.7 0.19 45);
+  --color-medium: oklch(0.79 0.16 85);
+  --color-low: oklch(0.72 0.16 150);
+  --color-info: oklch(0.7 0.03 265);
+
+  --radius-panel: 0.75rem;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+@layer base {
+  * {
+    border-color: var(--color-surface-3);
+  }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  html,
+  body {
+    height: 100%;
+  }
+
+  body {
+    background-color: var(--color-surface-0);
+    color: var(--color-content-primary);
+    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Klaviatura bilan navigatsiya ko'rinadigan bo'lishi kerak: operator
+     sichqonchasiz ham ishlay olishi mumkin. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--color-surface-0);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-surface-3);
+    border-radius: 9999px;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@utility panel {
+  background-color: var(--color-surface-1);
+  border: 1px solid var(--color-surface-2);
+  border-radius: var(--radius-panel);
+}
+
+/* Kritik hodisa kartasi diqqatni tortishi kerak, ammo miltillash
+   epilepsiya xavfi va charchoq keltiradi - shuning uchun yumshoq puls. */
+@keyframes critical-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-critical) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-critical) 0%, transparent);
+  }
+}
+
+@utility pulse-critical {
+  animation: critical-pulse 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

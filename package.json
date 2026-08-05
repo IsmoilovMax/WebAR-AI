@@ -1,0 +1,36 @@
+{
+  "name": "ai-camera-system",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@acs/web",
+    "build": "npm run build --workspace=@acs/types && npm run build --workspace=@acs/web",
+    "start": "npm run start --workspace=@acs/web",
+    "lint": "npm run lint --workspace=@acs/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.mjs",
+    "create-admin": "node --env-file-if-exists=.env scripts/create-admin.mjs",
+    "camera:probe": "node scripts/camera-probe.mjs",
+    "infra:up": "docker compose --env-file .env -f infra/docker-compose.yml up -d",
+    "infra:lite": "docker compose --env-file .env -f infra/docker-compose.lite.yml up -d",
+    "infra:lite:ai": "docker compose --env-file .env -f infra/docker-compose.lite.yml up -d && docker compose --env-file .env -f infra/docker-compose.yml up -d ai-worker",
+    "infra:down": "docker compose --env-file .env -f infra/docker-compose.yml down",
+    "infra:lite:down": "docker compose --env-file .env -f infra/docker-compose.lite.yml down",
+    "infra:lite:ai:down": "docker compose --env-file .env -f infra/docker-compose.yml stop ai-worker && docker compose --env-file .env -f infra/docker-compose.lite.yml down",
+    "ai-worker:dev": "powershell -ExecutionPolicy Bypass -File scripts/ai-worker-dev.ps1",
+    "models:download": "node scripts/download-ai-models.mjs"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=20.9.0"
+  }
+}

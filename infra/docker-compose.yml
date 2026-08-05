@@ -1,0 +1,140 @@
+name: acs
+
+services:
+  postgres:
+    image: timescale/timescaledb:2.17.2-pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-acs}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD kerak}
+      POSTGRES_DB: ${POSTGRES_DB:-acs}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-acs} -d ${POSTGRES_DB:-acs}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--maxmemory", "512mb", "--maxmemory-policy", "noeviction"]
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${S3_ACCESS_KEY:-acs-minio}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET_KEY:?S3_SECRET_KEY kerak}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      # MinIO image da curl bo'lmasligi mumkin; port ochiqligini tekshiramiz.
+      test: ["CMD-SHELL", "timeout 5 bash -c ':> /dev/tcp/127.0.0.1/9000' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # RTSP -> WebRTC gateway. Windows Docker da network_mode: host ishlamaydi —
+  # port mapping ishlatiladi (1984 API, 8555 WebRTC).
+  go2rtc:
+    image: alexxit/go2rtc:1.9.9
+    restart: unless-stopped
+    ports:
+      - "1984:1984"
+      - "8554:8554"
+      - "8555:8555/tcp"
+      - "8555:8555/udp"
+    environment:
+      TZ: ${TZ:-Asia/Tashkent}
+    volumes:
+      - ./go2rtc.yaml:/config/go2rtc.yaml
+
+  ai-worker:
+    build:
+      context: ../services/ai-worker
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      go2rtc:
+        condition: service_started
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-acs}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-acs}
+      REDIS_URL: redis://redis:6379/0
+      AI_WORKER_TOKEN: ${AI_WORKER_TOKEN:?AI_WORKER_TOKEN kerak}
+      CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY:?CREDENTIALS_ENCRYPTION_KEY kerak}
+      MODELS_DIR: /models
+      GO2RTC_URL: http://go2rtc:1984
+      ACS_LIVE_STREAM: ${ACS_LIVE_STREAM:-main}
+      ACS_AI_STREAM: ${ACS_AI_STREAM:-main}
+      ACS_AI_DIRECT_RTSP: ${ACS_AI_DIRECT_RTSP:-false}
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../services/ai-worker/models:/models:ro
+    # GPU ni yoqish uchun quyidagini oching (NVIDIA Container Toolkit kerak):
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+  event-service:
+    build:
+      context: ../services/event-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-acs}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-acs}
+      REDIS_URL: redis://redis:6379/0
+      S3_ENDPOINT: http://minio:9000
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-acs-minio}
+      S3_SECRET_KEY: ${S3_SECRET_KEY}
+      S3_BUCKET: ${S3_BUCKET:-acs-media}
+      CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      ROBOFLOW_API_KEY: ${ROBOFLOW_API_KEY:-}
+      ROBOFLOW_WORKSPACE: ${ROBOFLOW_WORKSPACE:-}
+      MEDIA_RETENTION_DAYS: ${MEDIA_RETENTION_DAYS:-30}
+      EVENT_RETENTION_DAYS: ${EVENT_RETENTION_DAYS:-180}
+      GO2RTC_URL: http://go2rtc:1984
+      CLIP_ENABLED: ${CLIP_ENABLED:-true}
+    ports:
+      - "8001:8001"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  postgres-data:
+  redis-data:
+  minio-data:

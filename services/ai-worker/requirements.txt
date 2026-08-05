@@ -1,0 +1,33 @@
+# Python 3.11 yoki 3.12 ishlatilsin. 3.13+ da torch va onnxruntime g'ildiraklari
+# hali barqaror emas.
+#
+# Muhim: torch/torchvision CPU wheel lari Dockerfile da alohida o'rnatiladi
+# (CUDA ~10GB+ tortmasligi uchun). Bu faylda torch yo'q.
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# RTSP dekodlash. OpenCV ning VideoCapture i ham ishlaydi, ammo PyAV
+# qayta ulanish va kadr tashlashni ancha aniq boshqarish imkonini beradi.
+av==13.1.0
+# mediapipe 0.10.x numpy 2.x ni qo'llab-quvvatlamaydi.
+numpy==1.26.4
+opencv-python-headless==4.10.0.84
+
+# Inference. Ultralytics YOLO detektor va pose uchun, ByteTrack ham shu yerda.
+# torch CPU allaqachon o'rnatilgan bo'lishi kerak (Dockerfile).
+ultralytics==8.3.55
+lap>=0.5.12
+onnxruntime==1.20.1
+# GPU uchun yuqoridagi o'rniga:
+# onnxruntime-gpu==1.20.1
+
+# Chekish detektorida qo'l va og'iz geometriyasini tekshirish uchun.
+mediapipe==0.10.20
+
+redis==5.2.1
+asyncpg==0.30.0
+cryptography==44.0.0
+httpx==0.28.1

@@ -1,37 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI Camera System
 
-## Getting Started
+Hikvision CCTV kameralari uchun real vaqtdagi AI video-analitika platformasi.
 
-First, run the development server:
+**Detektorlar:** odam + tracking, yong'in/tutun, yiqilish, chekish (beta), jins va yosh guruhi.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+> Batafsil: nima qilingani, har bir vazifa qanday ishlashi — **[docs/HOW_IT_WORKS.md](docs/HOW_IT_WORKS.md)**
+>
+> Mavjud React + Node saytga jonli CCTV va hodisalar jadvali — **[docs/INTEGRATION_EXISTING_SITE.md](docs/INTEGRATION_EXISTING_SITE.md)**
+
+## Arxitektura
+
+```
+Hikvision RTSP ──► go2rtc ──► WebRTC ──► Next.js /live
+       │
+       └──► Python AI Worker ──► Redis Streams ──► Event Service
+                                                      │
+                                      ┌───────────────┼───────────────┐
+                                      ▼               ▼               ▼
+                                  Postgres         MinIO         Telegram /
+                                 TimescaleDB      (clips)         Webhook
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Monorepo
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Papka | Vazifa |
+|-------|--------|
+| `apps/web` | Next.js 16 dashboard (live, events, analytics, cameras, settings) |
+| `services/ai-worker` | RTSP decode, YOLO + ByteTrack, temporal qoidalar |
+| `services/event-service` | Redis consumer, MinIO, alertlar, Roboflow upload |
+| `packages/types` | Umumiy TypeScript shartnomalar |
+| `infra` | docker-compose, migratsiyalar, go2rtc |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Tezkor start
 
-## Learn More
+```bash
+cp .env.example .env
+# AUTH_SECRET, CREDENTIALS_ENCRYPTION_KEY, parollarni to'ldiring
 
-To learn more about Next.js, take a look at the following resources:
+npm install
+npm run infra:up
+npm run db:migrate
+npm run create-admin -- --email admin@example.com --password '...' --org "Demo"
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+AI modellarni `services/ai-worker/models/` ga qo'ying:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `person.pt` — YOLO person (COCO)
+- `pose.pt` — YOLO pose
+- `fire_smoke.pt` — Roboflow fine-tune
+- `cigarette.pt` — chekish (beta)
+- `face.pt` / `genderage.onnx` — demografiya
 
-## Deploy on Vercel
+## Asosiy buyruqlar
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run dev            # Next.js
+npm run infra:up       # Postgres, Redis, MinIO, go2rtc, workers
+npm run db:migrate     # SQL migratsiyalar
+npm run camera:probe   # Hikvision ISAPI tekshiruv
+npm run create-admin   # Birinchi foydalanuvchi
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# WebAR-AI
+## Dashboard
+
+- `/live` — WebRTC grid + event overlay
+- `/events` — SSE lenta, snapshot/klip, false-positive belgilash
+- `/analytics` — tendensiya, demografiya, detektor sifati
+- `/cameras` — ISAPI probe, kamera CRUD, zona editori
+- `/settings` — alertlar, foydalanuvchilar, modelllar, edge, billing, audit
+
+## Huquqiy eslatma
+
+Yuz / jins / yosh — biometrik ma'lumot. Embedding saqlanmaydi; faqat yosh guruhi (`young` / `middle` / `senior`) va jins. Ma'lumotlar O'zbekiston hududidagi serverda saqlanishi kerak.
