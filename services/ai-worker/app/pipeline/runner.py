@@ -27,7 +27,15 @@ from ..bus import EventBus
 from ..config import Settings
 from ..db import CameraConfig
 from ..rules.base import EventCandidate, Rule, RuleContext
-from ..schemas import DetectionEvent, EventType, LiveOverlay, OverlayBox, Severity, TrainingSample
+from ..schemas import (
+    DetectionEvent,
+    EventType,
+    LiveOverlay,
+    OverlayBox,
+    PersonAttributes,
+    Severity,
+    TrainingSample,
+)
 from .annotate import annotate, to_jpeg_base64
 from .models import Detection, ModelRegistry, PoseResult
 from .source import RtspSource
@@ -40,6 +48,11 @@ COCO_PERSON = 0
 
 # Yuz/poza modellari og'ir — har N-kadrda (overlay tezroq yangilanadi).
 HEAVY_INFERENCE_INTERVAL = 3
+
+# Qisqa RTSP tebranishlarini hodisa qilmaslik (soniya).
+CAMERA_OFFLINE_GRACE_SECONDS = 45.0
+# DB last_seen_at yangilash (Hodisaga yozilmaydi).
+CAMERA_HEARTBEAT_SECONDS = 60.0
 
 FIRE_LABELS = {"fire", "flame", "yong'in", "yongin"}
 SMOKE_LABELS = {"smoke", "tutun"}
@@ -73,7 +86,6 @@ class CameraStats:
     active_detectors: list[str] = field(default_factory=list)
     disabled_detectors: dict[str, str] = field(default_factory=dict)
 
-
 class CameraWorker:
     def __init__(
         self,
@@ -83,12 +95,14 @@ class CameraWorker:
         registry: ModelRegistry,
         bus: EventBus,
         model_versions: dict[str, str],
+        daily_dedupe=None,
     ) -> None:
         self._camera = camera
         self._settings = settings
         self._registry = registry
         self._bus = bus
         self._model_versions = model_versions
+        self._daily_dedupe = daily_dedupe
 
         self._stats = CameraStats()
         self._stop = threading.Event()
@@ -100,6 +114,7 @@ class CameraWorker:
         self._fire_model = None
         self._cigarette_model = None
         self._face_model = None
+        self._insightface = None
 
         go2rtc = settings.go2rtc_url or None
         self._source = RtspSource(
@@ -113,6 +128,11 @@ class CameraWorker:
         self._last_overlay_at = 0.0
         self._frame_counter = 0
         self._cached_demographics: dict[int, str] = {}
+        # Kamera online/offline spamini oldini olish.
+        self._seen_first_connect = False
+        self._disconnect_since: float | None = None
+        self._offline_event_sent = False
+        self._last_heartbeat_at = 0.0
 
     @property
     def camera_id(self) -> str:
@@ -200,15 +220,44 @@ class CameraWorker:
                 )
 
         if "demographics" in enabled:
-            self._face_model = self._registry.load("face")
+            self._insightface = self._load_insightface()
             classifier = self._load_gender_age()
-            if self._face_model is not None and classifier is not None:
-                self._rules.append(DemographicsRule(classifier))
-                active.append("demographics")
-            else:
-                disabled["demographics"] = (
-                    self._registry.errors.get("face") or "genderage.onnx topilmadi"
+            # buffalo_sc da genderage yo'q — genderage.onnx alohida kerak.
+            if self._insightface is not None and classifier is not None:
+                self._rules.append(
+                    DemographicsRule(
+                        classifier,
+                        match_threshold=self._settings.arcface_match_threshold,
+                        daily_dedupe=self._daily_dedupe,
+                    )
                 )
+                active.append("demographics")
+                log.info(
+                    "Kamera %s: demografiya = InsightFace %s + genderage.onnx (kuniga 1 hodisa)",
+                    self._camera.name,
+                    self._settings.insightface_pack,
+                )
+            elif self._insightface is None:
+                self._face_model = self._registry.load("face")
+                if self._face_model is not None and classifier is not None:
+                    self._rules.append(
+                        DemographicsRule(
+                            classifier,
+                            match_threshold=self._settings.arcface_match_threshold,
+                            daily_dedupe=self._daily_dedupe,
+                        )
+                    )
+                    active.append("demographics")
+                else:
+                    from .insightface_pack import insightface_error
+
+                    disabled["demographics"] = (
+                        insightface_error()
+                        or self._registry.errors.get("face")
+                        or "genderage.onnx / InsightFace topilmadi"
+                    )
+            else:
+                disabled["demographics"] = "genderage.onnx topilmadi"
 
         if self._camera.zones and self._person_model is not None:
             self._rules.append(ZoneIntrusionRule())
@@ -224,6 +273,27 @@ class CameraWorker:
                 self._camera.name,
                 ", ".join(f"{key} ({value})" for key, value in disabled.items()),
             )
+
+    def _load_insightface(self):
+        if not self._settings.insightface_enabled:
+            return None
+        from .insightface_pack import get_insightface_pack
+
+        # /models odatda :ro — shuning uchun cache yoziladigan joy kerak.
+        root = self._settings.insightface_root
+        try:
+            root.mkdir(parents=True, exist_ok=True)
+        except OSError as exc:
+            log.warning("InsightFace cache yaratilmadi (%s): %s", root, exc)
+            return None
+
+        return get_insightface_pack(
+            pack=self._settings.insightface_pack,
+            root=root,
+            device=self._registry.device,
+            match_threshold=self._settings.arcface_match_threshold,
+            det_size=min(640, self._settings.detector_imgsz),
+        )
 
     def _load_gender_age(self):
         from .face import GenderAgeClassifier
@@ -273,8 +343,11 @@ class CameraWorker:
             try:
                 frame = frame_queue.get(timeout=0.5)
             except queue.Empty:
+                self._flush_camera_offline_if_due()
                 continue
 
+            self._flush_camera_offline_if_due()
+            self._maybe_camera_heartbeat()
             started = time.perf_counter()
             try:
                 self._process_frame(frame)
@@ -310,7 +383,8 @@ class CameraWorker:
         )
 
         heavy = self._frame_counter % HEAVY_INFERENCE_INTERVAL == 0 and (
-            self._face_model is not None
+            self._insightface is not None
+            or self._face_model is not None
             or self._pose_model is not None
             or self._fire_model is not None
             or self._cigarette_model is not None
@@ -332,14 +406,18 @@ class CameraWorker:
                 )
             )
 
-        if self._face_model is not None:
+        face_hits = []
+        if self._insightface is not None:
+            face_hits = self._insightface.detect(frame.image)
+            objects.extend(self._insightface.as_detections(face_hits))
+        elif self._face_model is not None:
             objects.extend(
                 self._face_model.predict(
                     frame.image, confidence=self._settings.face_confidence
                 )
             )
 
-        # YOLO yuzni o'tkazib yuborsa — yaqin/focusdan chiqqan yuzlar (MediaPipe).
+        # YOLO/InsightFace yuzni o'tkazib yuborsa — MediaPipe fallback.
         if not any(o.label.lower() == "face" for o in objects):
             from .mediapipe_face import detect_face_boxes
 
@@ -378,6 +456,7 @@ class CameraWorker:
             objects=objects,
             poses=poses,
             model_versions=self._model_versions,
+            face_hits=face_hits,
         )
 
         for rule in self._rules:
@@ -398,19 +477,19 @@ class CameraWorker:
     def _demographics_subtitles(self) -> dict[int, str]:
         from ..rules.demographics import DemographicsRule
 
-        gender_uz = {"male": "Erkak", "female": "Ayol"}
-        age_uz = {"young": "yosh", "middle": "o'rta", "senior": "katta"}
+        gender_ko = {"male": "남자", "female": "여자"}
+        age_ko = {"young": "어린이", "middle": "중년", "senior": "노인"}
 
         for rule in self._rules:
             if not isinstance(rule, DemographicsRule):
                 continue
             subtitles: dict[int, str] = {}
             for track_id, attrs in rule.live_attributes().items():
-                if attrs.genderConfidence < 0.55:
+                if attrs.genderConfidence < 0.5:
                     continue
-                parts = [gender_uz.get(attrs.gender, "")]
+                parts = [gender_ko.get(attrs.gender, "")]
                 if attrs.ageBucket != "unknown":
-                    parts.append(age_uz.get(attrs.ageBucket, attrs.ageBucket))
+                    parts.append(age_ko.get(attrs.ageBucket, attrs.ageBucket))
                 text = " · ".join(p for p in parts if p)
                 if text:
                     subtitles[track_id] = text
@@ -525,6 +604,17 @@ class CameraWorker:
             timestamp=candidate.confirmed_at,
         )
 
+        attributes = None
+        meta = candidate.meta or {}
+        if candidate.type is EventType.PERSON_DETECTED and meta.get("gender"):
+            attributes = PersonAttributes(
+                gender=meta.get("gender", "unknown"),  # type: ignore[arg-type]
+                genderConfidence=float(meta.get("genderConfidence") or 0),
+                ageBucket=meta.get("ageBucket") or "unknown",  # type: ignore[arg-type]
+                ageConfidence=float(meta.get("ageConfidence") or 0),
+                samples=int(meta.get("samples") or 1),
+            )
+
         event = DetectionEvent(
             eventKey=candidate.event_key(self._camera.id),
             orgId=self._camera.org_id,
@@ -537,11 +627,12 @@ class CameraWorker:
             trackId=candidate.track_id,
             zoneId=candidate.zone_id,
             bbox=candidate.bbox,
+            attributes=attributes,
             modelVersions=self._model_versions,
             snapshotJpegBase64=to_jpeg_base64(
                 snapshot, self._settings.snapshot_jpeg_quality
             ),
-            meta=candidate.meta,
+            meta=meta,
         )
 
         if self._bus.publish_event(event):
@@ -614,10 +705,64 @@ class CameraWorker:
         self._stats.connected = connected
         self._stats.status_reason = reason
 
+        if connected:
+            # Qisqa uzilishdan keyin qayta ulanganda Hodisa chiqarmaymiz.
+            self._disconnect_since = None
+            if not self._seen_first_connect:
+                self._seen_first_connect = True
+                # DB status=online (silent) — /cameras da offline ko'rinmasin.
+                self._publish_camera_link_event(
+                    online=True, reason=reason or "ulandi", silent=True
+                )
+                log.info("Kamera birinchi marta ulandi: %s", self._camera.name)
+                return
+            if self._offline_event_sent:
+                self._offline_event_sent = False
+                self._publish_camera_link_event(online=True, reason=reason, silent=False)
+            else:
+                # Qisqa blip: faqat last_seen yangilanadi.
+                self._publish_camera_link_event(
+                    online=True, reason=reason or "qayta ulandi", silent=True
+                )
+            return
+
+        # Offline: darhol emas — grace muddatidan keyin.
+        if self._disconnect_since is None:
+            self._disconnect_since = time.time()
+
+    def _flush_camera_offline_if_due(self) -> None:
+        if self._disconnect_since is None or self._offline_event_sent:
+            return
+        if time.time() - self._disconnect_since < CAMERA_OFFLINE_GRACE_SECONDS:
+            return
+        self._offline_event_sent = True
+        self._publish_camera_link_event(
+            online=False,
+            reason=self._stats.status_reason or "uzoq uzilish",
+            silent=False,
+        )
+
+    def _maybe_camera_heartbeat(self) -> None:
+        if not self._stats.connected:
+            return
+        now = time.time()
+        if now - self._last_heartbeat_at < CAMERA_HEARTBEAT_SECONDS:
+            return
+        self._last_heartbeat_at = now
+        self._publish_camera_link_event(online=True, reason="heartbeat", silent=True)
+
+    def _publish_camera_link_event(
+        self, *, online: bool, reason: str | None, silent: bool
+    ) -> None:
         from datetime import UTC, datetime
 
         now = datetime.now(tz=UTC)
-        event_type = EventType.CAMERA_ONLINE if connected else EventType.CAMERA_OFFLINE
+        event_type = EventType.CAMERA_ONLINE if online else EventType.CAMERA_OFFLINE
+        meta: dict = {}
+        if reason:
+            meta["reason"] = reason
+        if silent:
+            meta["silent"] = True
 
         self._bus.publish_event(
             DetectionEvent(
@@ -625,10 +770,17 @@ class CameraWorker:
                 orgId=self._camera.org_id,
                 cameraId=self._camera.id,
                 type=event_type,
-                severity=Severity.INFO if connected else Severity.HIGH,
+                severity=Severity.INFO if online else Severity.HIGH,
                 startedAt=now,
                 confirmedAt=now,
                 confidence=1.0,
-                meta={"reason": reason} if reason else {},
+                meta=meta,
             )
         )
+        if not silent:
+            log.info(
+                "Kamera %s: %s%s",
+                self._camera.name,
+                event_type.value,
+                f" ({reason})" if reason else "",
+            )

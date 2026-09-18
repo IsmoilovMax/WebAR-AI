@@ -8,7 +8,7 @@ import { listCameras } from "@/lib/data/cameras";
 import { eventCounts, listEvents } from "@/lib/data/events";
 import { formatPercent } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Hodisalar" };
+export const metadata: Metadata = { title: "이벤트" };
 
 function parseStatus(value: string | undefined): EventStatus | "all" {
   if (!value) return "new";
@@ -29,6 +29,9 @@ export default async function EventsPage({
   const [events, cameras, counts] = await Promise.all([
     listEvents(session.orgId, {
       statuses: initialStatus === "all" ? undefined : [initialStatus],
+      // Ulanish tebranishlari badge/ro'yxatni to'ldirmasin — operator
+      // signal hodisalarini ko'rsin.
+      excludeTypes: ["camera_online", "camera_offline"],
       limit: 50,
     }),
     listCameras(session.orgId),
@@ -37,25 +40,24 @@ export default async function EventsPage({
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
-      <h1 className="text-lg font-semibold">Hodisalar</h1>
+      <h1 className="text-lg font-semibold">이벤트</h1>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="24 soatda" value={counts.total} />
+      <div className="panel grid grid-cols-2 md:grid-cols-4">
+        <Stat label="24시간" value={counts.total} />
         <Stat
-          label="Ko'rilmagan"
+          label="미확인"
           value={counts.unresolved}
           tone={counts.unresolved > 0 ? "warning" : "neutral"}
         />
         <Stat
-          label="Kritik (24 soat)"
+          label="긴급 (24시간)"
           value={counts.critical24h}
           tone={counts.critical24h > 0 ? "danger" : "neutral"}
         />
         <Stat
-          label="Yolg'on signal"
+          label="오탐률"
           value={formatPercent(counts.falsePositiveRate)}
-          hint="Oxirgi 7 kun, baholangan hodisalardan"
-          // 10% dan oshsa operatorlar signallarga ishonmay qo'yadi.
+          hint="최근 7일, 평가된 이벤트 기준"
           tone={counts.falsePositiveRate > 0.1 ? "danger" : "success"}
         />
       </div>

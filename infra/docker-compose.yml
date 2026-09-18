@@ -88,10 +88,16 @@ services:
       ACS_LIVE_STREAM: ${ACS_LIVE_STREAM:-main}
       ACS_AI_STREAM: ${ACS_AI_STREAM:-main}
       ACS_AI_DIRECT_RTSP: ${ACS_AI_DIRECT_RTSP:-false}
+      ACS_INSIGHTFACE: ${ACS_INSIGHTFACE:-true}
+      ACS_INSIGHTFACE_PACK: ${ACS_INSIGHTFACE_PACK:-buffalo_sc}
+      ACS_ARCFACE_THRESHOLD: ${ACS_ARCFACE_THRESHOLD:-0.42}
+      ACS_DAY_TZ: ${ACS_DAY_TZ:-Asia/Seoul}
     ports:
       - "8000:8000"
     volumes:
       - ../services/ai-worker/models:/models:ro
+      # InsightFace buffalo_sc cache (yoziladi; /models :ro).
+      - ai-insightface-cache:/var/cache/insightface
     # GPU ni yoqish uchun quyidagini oching (NVIDIA Container Toolkit kerak):
     # deploy:
     #   resources:
@@ -138,3 +144,4 @@ volumes:
   postgres-data:
   redis-data:
   minio-data:
+  ai-insightface-cache:

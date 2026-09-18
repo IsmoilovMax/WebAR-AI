@@ -21,7 +21,7 @@ CREATE TABLE sites (
   org_id     uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name       text NOT NULL,
   address    text,
-  timezone   text NOT NULL DEFAULT 'Asia/Tashkent',
+  timezone   text NOT NULL DEFAULT 'Asia/Seoul',
   created_at timestamptz NOT NULL DEFAULT now()
 );
 

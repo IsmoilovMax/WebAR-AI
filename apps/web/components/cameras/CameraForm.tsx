@@ -42,9 +42,9 @@ export function CameraForm({ sites }: { sites: Site[] }) {
       const sub = detail.channels?.find((c) => c.kind === "sub");
       setProbeInfo(
         [
-          detail.model && `Model: ${detail.model}`,
-          detail.firmware && `Firmware: ${detail.firmware}`,
-          sub && `Sub-stream: ${sub.width}x${sub.height} ${sub.codec}`,
+          detail.model && `모델: ${detail.model}`,
+          detail.firmware && `펌웨어: ${detail.firmware}`,
+          sub && `서브스트림: ${sub.width}x${sub.height} ${sub.codec}`,
         ]
           .filter(Boolean)
           .join(" · "),
@@ -74,10 +74,10 @@ export function CameraForm({ sites }: { sites: Site[] }) {
   return (
     <form action={onSubmit} className="panel flex flex-col gap-4 p-5">
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Nomi">
-          <Input name="name" required placeholder="Kirish, 1-qavat" />
+        <Field label="이름">
+          <Input name="name" required placeholder="입구, 1층" />
         </Field>
-        <Field label="Obyekt">
+        <Field label="사이트">
           <Select name="siteId" defaultValue="">
             <option value="">—</option>
             {sites.map((site) => (
@@ -87,22 +87,22 @@ export function CameraForm({ sites }: { sites: Site[] }) {
             ))}
           </Select>
         </Field>
-        <Field label="IP / host" hint="Masalan 192.168.1.64">
+        <Field label="IP / 호스트" hint="예: 192.168.1.64">
           <Input name="host" required placeholder="192.168.1.64" />
         </Field>
-        <Field label="Kanal">
+        <Field label="채널">
           <Input name="channel" type="number" min={1} max={64} defaultValue={1} />
         </Field>
-        <Field label="RTSP port">
+        <Field label="RTSP 포트">
           <Input name="rtspPort" type="number" defaultValue={554} />
         </Field>
-        <Field label="ISAPI port">
+        <Field label="ISAPI 포트">
           <Input name="isapiPort" type="number" defaultValue={80} />
         </Field>
-        <Field label="Login">
+        <Field label="로그인">
           <Input name="username" required defaultValue="admin" autoComplete="username" />
         </Field>
-        <Field label="Parol">
+        <Field label="비밀번호">
           <Input
             name="password"
             type="password"
@@ -110,14 +110,14 @@ export function CameraForm({ sites }: { sites: Site[] }) {
             autoComplete="current-password"
           />
         </Field>
-        <Field label="AI FPS" hint="5-8 aksariyat hollarda yetarli">
+        <Field label="AI FPS" hint="보통 5–8이면 충분합니다">
           <Input name="analyticsFps" type="number" min={1} max={30} defaultValue={6} />
         </Field>
       </div>
 
       <fieldset>
         <legend className="mb-2 text-xs font-medium text-content-secondary">
-          Detektorlar
+          감지기
         </legend>
         <div className="flex flex-wrap gap-2">
           {DETECTORS.map((detector) => {
@@ -130,12 +130,12 @@ export function CameraForm({ sites }: { sites: Site[] }) {
                 onClick={() => toggleDetector(detector)}
                 className={
                   active
-                    ? "rounded-lg bg-brand/15 px-3 py-1.5 text-xs font-medium text-brand ring-1 ring-brand/40"
-                    : "rounded-lg bg-surface-2 px-3 py-1.5 text-xs text-content-secondary"
+                    ? "rounded bg-brand/15 px-3 py-1.5 text-xs font-medium text-brand ring-1 ring-brand/40"
+                    : "rounded bg-surface-2 px-3 py-1.5 text-xs text-content-secondary"
                 }
               >
                 {DETECTOR_LABELS[detector]}
-                {beta ? " · beta" : ""}
+                {beta ? " · 베타" : ""}
               </button>
             );
           })}
@@ -164,10 +164,10 @@ export function CameraForm({ sites }: { sites: Site[] }) {
             if (form) onProbe(form);
           }}
         >
-          ISAPI tekshirish
+          ISAPI 확인
         </Button>
         <Button type="submit" variant="primary" disabled={pending || detectors.length === 0}>
-          {pending ? "Saqlanmoqda..." : "Kamera qo'shish"}
+          {pending ? "저장 중..." : "카메라 추가"}
         </Button>
       </div>
     </form>

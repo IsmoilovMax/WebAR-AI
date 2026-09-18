@@ -3,7 +3,7 @@ import { LiveGrid } from "@/components/live/LiveGrid";
 import { requirePermission } from "@/lib/auth/guard";
 import { listCameras } from "@/lib/data/cameras";
 
-export const metadata: Metadata = { title: "Jonli" };
+export const metadata: Metadata = { title: "라이브" };
 
 export default async function LivePage() {
   const session = await requirePermission("camera:read");
@@ -11,7 +11,7 @@ export default async function LivePage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <h1 className="mb-4 text-lg font-semibold">Jonli ko&apos;rinish</h1>
+      <h1 className="mb-4 text-lg font-semibold">라이브</h1>
       <LiveGrid cameras={cameras.filter((camera) => camera.enabled)} />
     </div>
   );

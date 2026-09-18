@@ -45,8 +45,8 @@ async function main() {
   }
 
   const password = args.password || (await promptPassword());
-  if (!password || password.length < 12) {
-    console.error("Parol kamida 12 belgidan iborat bo'lishi kerak.");
+  if (!password || password.length < 4) {
+    console.error("Parol kamida 4 belgidan iborat bo'lishi kerak.");
     process.exit(1);
   }
 

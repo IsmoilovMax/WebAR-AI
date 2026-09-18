@@ -48,28 +48,28 @@ interface CameraLoad {
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  person_detected: "Odam",
-  fire: "Yong'in",
-  smoke: "Tutun",
-  fall: "Yiqilish",
-  smoking: "Chekish",
-  zone_intrusion: "Zona",
-  loitering: "Uzoq turish",
-  camera_offline: "Offline",
-  camera_online: "Online",
+  person_detected: "사람",
+  fire: "화재",
+  smoke: "연기",
+  fall: "낙상",
+  smoking: "흡연",
+  zone_intrusion: "구역",
+  loitering: "배회",
+  camera_offline: "오프라인",
+  camera_online: "온라인",
 };
 
 const AGE_LABELS: Record<string, string> = {
-  young: "Yosh (0-25)",
-  middle: "O'rta (26-50)",
-  senior: "Yuqori (51+)",
-  unknown: "Noma'lum",
+  young: "어린이 (0-25)",
+  middle: "중년 (26-50)",
+  senior: "노인 (51+)",
+  unknown: "미확인",
 };
 
 const GENDER_LABELS: Record<string, string> = {
-  male: "Erkak",
-  female: "Ayol",
-  unknown: "Noma'lum",
+  male: "남자",
+  female: "여자",
+  unknown: "미확인",
 };
 
 export function AnalyticsDashboard({
@@ -99,22 +99,22 @@ export function AnalyticsDashboard({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label={`${days} kunda hodisalar`} value={totalEvents} />
-        <Stat label="Detektorlar" value={quality.length} />
+      <div className="panel grid grid-cols-2 md:grid-cols-4">
+        <Stat label={`${days}일 이벤트`} value={totalEvents} />
+        <Stat label="감지기" value={quality.length} />
         <Stat
-          label="Eng yuqori FP"
+          label="최고 오탐률"
           value={formatPercent(worstFp)}
           tone={worstFp > 0.1 ? "danger" : "success"}
         />
         <Stat
-          label="Demografiya namunalari"
+          label="인구통계 샘플"
           value={demographics.reduce((s, d) => s + d.people, 0)}
         />
       </div>
 
       <Panel>
-        <PanelHeader title="Hodisalar tendensiyasi" description={`Oxirgi ${days} kun`} />
+        <PanelHeader title="이벤트 추이" description={`최근 ${days}일`} />
         <div className="h-64 px-2 py-4">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={lineData}>
@@ -135,10 +135,7 @@ export function AnalyticsDashboard({
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel>
-          <PanelHeader
-            title="Soatlik tashrif"
-            description="Demografiya sighting laridan"
-          />
+          <PanelHeader title="시간대별 방문" description="인구통계 감지 기준" />
           <div className="h-64 px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={footfall}>
@@ -158,18 +155,18 @@ export function AnalyticsDashboard({
         </Panel>
 
         <Panel>
-          <PanelHeader title="Detektor sifati" description="Yolg'on signal ulushi" />
+          <PanelHeader title="감지기 품질" description="오탐 비율" />
           <ul className="divide-y divide-surface-2">
             {quality.length === 0 ? (
               <li className="px-5 py-8 text-center text-xs text-content-muted">
-                Hali ma&apos;lumot yo&apos;q
+                아직 데이터가 없습니다
               </li>
             ) : (
               quality.map((row) => (
                 <li key={row.type} className="flex items-center justify-between px-5 py-3 text-sm">
                   <span>{TYPE_LABELS[row.type] ?? row.type}</span>
                   <span className="tabular-nums text-content-secondary">
-                    {row.total} · FP {formatPercent(row.falsePositiveRate)}
+                    {row.total} · 오탐 {formatPercent(row.falsePositiveRate)}
                   </span>
                 </li>
               ))
@@ -181,13 +178,13 @@ export function AnalyticsDashboard({
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel>
           <PanelHeader
-            title="Demografiya"
-            description="Faqat 3 ta yosh guruhi — aniq yosh berilmaydi"
+            title="인구통계"
+            description="3개 연령대만 제공 — 정확한 나이는 표시되지 않습니다"
           />
           <ul className="divide-y divide-surface-2">
             {demographics.length === 0 ? (
               <li className="px-5 py-8 text-center text-xs text-content-muted">
-                Demografiya detektori yoqilmagan yoki hali namunalar yo&apos;q
+                인구통계 감지기가 꺼져 있거나 샘플이 없습니다
               </li>
             ) : (
               demographics.map((row) => (
@@ -199,7 +196,7 @@ export function AnalyticsDashboard({
                     {GENDER_LABELS[row.gender]} · {AGE_LABELS[row.ageBucket]}
                   </span>
                   <span className="tabular-nums text-content-secondary">
-                    {row.people} · o&apos;rt. {Math.round(row.avgDwellSeconds)}s
+                    {row.people} · 평균 {Math.round(row.avgDwellSeconds)}초
                   </span>
                 </li>
               ))
@@ -208,7 +205,7 @@ export function AnalyticsDashboard({
         </Panel>
 
         <Panel>
-          <PanelHeader title="Kameralar bo'yicha yuklama" />
+          <PanelHeader title="카메라별 부하" />
           <div className="h-64 px-2 py-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={byCamera} layout="vertical" margin={{ left: 40 }}>
@@ -227,7 +224,7 @@ export function AnalyticsDashboard({
                   }}
                 />
                 <Legend />
-                <Bar dataKey="events" name="Hodisalar" fill="var(--color-high)" radius={[0, 4, 4, 0]} />
+                <Bar dataKey="events" name="이벤트" fill="var(--color-high)" radius={[0, 4, 4, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>

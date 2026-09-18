@@ -5,11 +5,11 @@ export const DETECTORS = ["person", "fire_smoke", "fall", "smoking", "demographi
 export type Detector = (typeof DETECTORS)[number];
 
 export const DETECTOR_LABELS: Record<Detector, string> = {
-  person: "Odam aniqlash",
-  fire_smoke: "Yong'in va tutun",
-  fall: "Yiqilish",
-  smoking: "Chekish (beta)",
-  demographics: "Jins va yosh guruhi",
+  person: "사람 감지",
+  fire_smoke: "화재 및 연기",
+  fall: "낙상",
+  smoking: "흡연 (베타)",
+  demographics: "성별 및 연령대",
 };
 
 /**

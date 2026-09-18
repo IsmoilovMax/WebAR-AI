@@ -13,6 +13,7 @@ from ..bus import EventBus
 from ..config import Settings
 from ..db import CameraConfig, ConfigStore
 from ..go2rtc import ensure_streams
+from .face_dedupe import DailyFaceDedupe
 from .models import ModelRegistry
 from .runner import CameraWorker
 
@@ -28,6 +29,11 @@ class Supervisor:
         self._store = ConfigStore(settings.database_url, settings.credentials_encryption_key)
         self._bus = EventBus(settings)
         self._registry = ModelRegistry(settings)
+        self._daily_dedupe = DailyFaceDedupe(
+            settings.redis_url,
+            match_threshold=settings.arcface_match_threshold,
+            timezone=settings.day_timezone,
+        )
         self._workers: dict[str, CameraWorker] = {}
         self._signatures: dict[str, tuple] = {}
         self._model_versions: dict[str, str] = {}
@@ -61,6 +67,7 @@ class Supervisor:
 
         await self._store.close()
         self._bus.close()
+        self._daily_dedupe.close()
 
     async def _reload_loop(self) -> None:
         while True:
@@ -120,6 +127,7 @@ class Supervisor:
                 registry=self._registry,
                 bus=self._bus,
                 model_versions=self._model_versions,
+                daily_dedupe=self._daily_dedupe,
             )
             worker.start()
             self._workers[camera_id] = worker

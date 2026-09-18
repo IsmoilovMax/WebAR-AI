@@ -60,7 +60,7 @@ export async function createAlertRuleAction(formData: FormData): Promise<ActionR
   });
 
   if (!parsed.success) {
-    return { ok: false, error: parsed.error.issues[0]?.message ?? "Noto'g'ri ma'lumot" };
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "입력값이 올바르지 않습니다" };
   }
 
   const rule = await createAlertRule(session.orgId, parsed.data);
@@ -91,7 +91,7 @@ export async function deleteAlertRuleAction(ruleId: string): Promise<ActionResul
 export async function inviteUserAction(formData: FormData): Promise<ActionResult> {
   const session = await requirePermission("user:write");
   const role = String(formData.get("role") ?? "viewer") as Role;
-  if (!ROLES.includes(role)) return { ok: false, error: "Rol noto'g'ri" };
+  if (!ROLES.includes(role)) return { ok: false, error: "역할이 올바르지 않습니다" };
 
   try {
     const user = await inviteUser({
@@ -108,7 +108,7 @@ export async function inviteUserAction(formData: FormData): Promise<ActionResult
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Taklif yuborilmadi",
+      error: error instanceof Error ? error.message : "사용자를 초대할 수 없습니다",
     };
   }
 }
@@ -137,13 +137,13 @@ export async function changePlanAction(plan: Organization["plan"]): Promise<Acti
   await updatePlan(session.orgId, plan);
   await recordAudit(session, "billing.plan", "organization", session.orgId, { plan });
   revalidatePath("/settings");
-  return { ok: true, message: `${plan} tarifiga o'tkazildi` };
+  return { ok: true, message: `${plan} 플랜으로 변경되었습니다` };
 }
 
 export async function activateModelAction(modelId: string): Promise<ActionResult> {
   const session = await requirePermission("alert:write");
   const ok = await activateModel(session.orgId, modelId);
-  if (!ok) return { ok: false, error: "Model topilmadi" };
+  if (!ok) return { ok: false, error: "모델을 찾을 수 없습니다" };
   await recordAudit(session, "model.activate", "model_version", modelId);
   revalidatePath("/settings");
   return { ok: true };
@@ -154,7 +154,7 @@ export async function provisionEdgeNodeAction(
 ): Promise<ActionResult & { apiKey?: string }> {
   const session = await requirePermission("billing:write");
   const name = String(formData.get("name") ?? "").trim();
-  if (!name) return { ok: false, error: "Nom kerak" };
+  if (!name) return { ok: false, error: "이름이 필요합니다" };
 
   // API kalit faqat bir marta ko'rsatiladi.
   const apiKey = `acs_edge_${randomBytes(24).toString("hex")}`;
@@ -171,7 +171,7 @@ export async function provisionEdgeNodeAction(
   revalidatePath("/settings");
   return {
     ok: true,
-    message: "Edge tugun yaratildi. API kalitni saqlab qo'ying — qayta ko'rsatilmaydi.",
+    message: "엣지 노드가 생성되었습니다. API 키를 저장하세요 — 다시 표시되지 않습니다.",
     apiKey,
   };
 }

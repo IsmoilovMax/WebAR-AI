@@ -50,6 +50,21 @@ class Settings(BaseSettings):
     pose_confidence: float = 0.4
     face_confidence: float = 0.25
 
+    # Demografiya: InsightFace buffalo_sc (RetinaFace + ArcFace). False = YOLO face.
+    insightface_enabled: bool = Field(default=True, validation_alias="ACS_INSIGHTFACE")
+    insightface_pack: str = Field(default="buffalo_sc", validation_alias="ACS_INSIGHTFACE_PACK")
+    # ArcFace cosine similarity — bir xil odam deb hisoblash chegarasi.
+    arcface_match_threshold: float = Field(
+        default=0.42, validation_alias="ACS_ARCFACE_THRESHOLD"
+    )
+    # Modellarni yuklab olish joyi (/models odatda read-only).
+    insightface_root: Path = Field(
+        default=Path("/var/cache/insightface"),
+        validation_alias="ACS_INSIGHTFACE_ROOT",
+    )
+    # Bir xil odam (ArcFace) kuniga 1 marta hodisa — kun chegarasi vaqti.
+    day_timezone: str = Field(default="Asia/Seoul", validation_alias="ACS_DAY_TZ")
+
     # Bitta workerda nechta kamera. Bundan ko'p bo'lsa kadr navbati o'sadi.
     max_cameras: int = 12
 

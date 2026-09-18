@@ -22,6 +22,7 @@ import numpy as np
 
 from ..db import CameraConfig
 from ..geometry import BBox
+from ..pipeline.insightface_pack import FaceHit
 from ..pipeline.models import Detection, PoseResult
 from ..schemas import DEFAULT_SEVERITY, EventType, Severity
 
@@ -35,6 +36,8 @@ class RuleContext:
     objects: list[Detection] = field(default_factory=list)
     poses: list[PoseResult] = field(default_factory=list)
     model_versions: dict[str, str] = field(default_factory=dict)
+    # RetinaFace/ArcFace natijalari (bo'sh bo'lsa YOLO face + genderage fallback).
+    face_hits: list[FaceHit] = field(default_factory=list)
 
     @property
     def wall_datetime(self) -> datetime:

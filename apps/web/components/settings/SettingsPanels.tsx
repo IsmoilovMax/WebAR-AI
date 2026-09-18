@@ -85,15 +85,15 @@ const PLAN_PRICES_USD: Record<Organization["plan"], number> = {
 };
 
 const EVENT_LABELS: Record<string, string> = {
-  person_detected: "Odam",
-  fire: "Yong'in",
-  smoke: "Tutun",
-  fall: "Yiqilish",
-  smoking: "Chekish",
-  zone_intrusion: "Zona",
-  loitering: "Uzoq turish",
-  camera_offline: "Kamera offline",
-  camera_online: "Kamera online",
+  person_detected: "사람",
+  fire: "화재",
+  smoke: "연기",
+  fall: "낙상",
+  smoking: "흡연",
+  zone_intrusion: "구역",
+  loitering: "배회",
+  camera_offline: "카메라 오프라인",
+  camera_online: "카메라 온라인",
 };
 
 export function AlertsPanel({
@@ -121,21 +121,21 @@ export function AlertsPanel({
     <div className="flex flex-col gap-4">
       {canWrite ? (
         <form action={onCreate} className="panel flex flex-col gap-3 p-5">
-          <h3 className="text-sm font-semibold">Yangi alert qoidasi</h3>
+          <h3 className="text-sm font-semibold">새 알림 규칙</h3>
           <div className="grid gap-3 md:grid-cols-2">
-            <Field label="Nomi">
-              <Input name="name" required placeholder="Yong'in - Telegram" />
+            <Field label="이름">
+              <Input name="name" required placeholder="화재 - Telegram" />
             </Field>
-            <Field label="Minimal daraja">
+            <Field label="최소 심각도">
               <Select name="minSeverity" defaultValue="medium">
-                <option value="info">Ma'lumot</option>
-                <option value="low">Past</option>
-                <option value="medium">O'rta</option>
-                <option value="high">Yuqori</option>
-                <option value="critical">Kritik</option>
+                <option value="info">정보</option>
+                <option value="low">낮음</option>
+                <option value="medium">보통</option>
+                <option value="high">높음</option>
+                <option value="critical">긴급</option>
               </Select>
             </Field>
-            <Field label="Kanal">
+            <Field label="채널">
               <Select
                 name="channel"
                 value={channel}
@@ -146,13 +146,13 @@ export function AlertsPanel({
                 <option value="email">Email</option>
               </Select>
             </Field>
-            <Field label="Cooldownoldown (soniya)">
+            <Field label="쿨다운 (초)">
               <Input name="cooldownSeconds" type="number" defaultValue={300} />
             </Field>
           </div>
 
           {channel === "telegram" ? (
-            <Field label="Telegram chat ID">
+            <Field label="Telegram 채팅 ID">
               <Input name="chatId" required placeholder="-100..." />
             </Field>
           ) : null}
@@ -161,19 +161,19 @@ export function AlertsPanel({
               <Field label="Webhook URL">
                 <Input name="webhookUrl" required type="url" />
               </Field>
-              <Field label="Secret (ixtiyoriy)">
+              <Field label="시크릿 (선택)">
                 <Input name="webhookSecret" />
               </Field>
             </>
           ) : null}
           {channel === "email" ? (
-            <Field label="Email (vergul bilan)">
+            <Field label="이메일 (쉼표 구분)">
               <Input name="emailTo" required placeholder="ops@example.com" />
             </Field>
           ) : null}
 
           <fieldset>
-            <legend className="mb-2 text-xs text-content-secondary">Hodisa turlari</legend>
+            <legend className="mb-2 text-xs text-content-secondary">이벤트 유형</legend>
             <div className="flex flex-wrap gap-2">
               {EVENT_TYPES.filter((t) => !t.startsWith("camera_")).map((type) => (
                 <label
@@ -189,17 +189,17 @@ export function AlertsPanel({
 
           {error ? <p className="text-xs text-critical">{error}</p> : null}
           <Button type="submit" variant="primary" disabled={pending}>
-            Qo&apos;shish
+            추가
           </Button>
         </form>
       ) : null}
 
       <Panel>
-        <PanelHeader title="Qoidalar" />
+        <PanelHeader title="규칙" />
         <ul className="divide-y divide-surface-2">
           {rules.length === 0 ? (
             <li className="px-5 py-8 text-center text-xs text-content-muted">
-              Hali qoida yo&apos;q
+              규칙이 없습니다
             </li>
           ) : (
             rules.map((rule) => (
@@ -221,7 +221,7 @@ export function AlertsPanel({
                         })
                       }
                     >
-                      {rule.enabled ? "O'chirish" : "Yoqish"}
+                      {rule.enabled ? "끄기" : "켜기"}
                     </Button>
                     <Button
                       type="button"
@@ -232,12 +232,12 @@ export function AlertsPanel({
                         })
                       }
                     >
-                      O&apos;chirish
+                      삭제
                     </Button>
                   </div>
                 ) : (
                   <Badge tone={rule.enabled ? "success" : "neutral"}>
-                    {rule.enabled ? "Faol" : "O'chiq"}
+                    {rule.enabled ? "활성" : "비활성"}
                   </Badge>
                 )}
               </li>
@@ -247,7 +247,7 @@ export function AlertsPanel({
       </Panel>
 
       <Panel>
-        <PanelHeader title="So'nggi yuborishlar" />
+        <PanelHeader title="최근 전송" />
         <ul className="divide-y divide-surface-2">
           {deliveries.slice(0, 20).map((item) => (
             <li key={item.id} className="flex justify-between gap-2 px-5 py-3 text-xs">
@@ -296,16 +296,16 @@ export function UsersPanel({
             });
           }}
         >
-          <Field label="Ism">
+          <Field label="이름">
             <Input name="name" required />
           </Field>
-          <Field label="Email">
+          <Field label="이메일">
             <Input name="email" type="email" required />
           </Field>
-          <Field label="Vaqtinchalik parol">
+          <Field label="임시 비밀번호">
             <Input name="password" type="password" required minLength={8} />
           </Field>
-          <Field label="Rol">
+          <Field label="역할">
             <Select name="role" defaultValue="operator">
               {ROLES.map((role) => (
                 <option key={role} value={role}>
@@ -316,13 +316,13 @@ export function UsersPanel({
           </Field>
           {error ? <p className="text-xs text-critical md:col-span-2">{error}</p> : null}
           <Button type="submit" variant="primary" disabled={pending} className="md:col-span-2">
-            Foydalanuvchi qo&apos;shish
+            사용자 추가
           </Button>
         </form>
       ) : null}
 
       <Panel>
-        <PanelHeader title="A'zolar" />
+        <PanelHeader title="구성원" />
         <ul className="divide-y divide-surface-2">
           {users.map((user) => (
             <li key={user.membershipId} className="flex flex-wrap items-center justify-between gap-2 px-5 py-3">
@@ -356,7 +356,7 @@ export function UsersPanel({
                       })
                     }
                   >
-                    Olib tashlash
+                    제거
                   </Button>
                 </div>
               ) : (
@@ -384,11 +384,11 @@ export function BillingPanel({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <Stat label="Joriy tarif" value={org.plan} />
-        <Stat label="Kameralar" value={`${org.cameraCount} / ${org.cameraLimit}`} />
+      <div className="panel grid grid-cols-2 md:grid-cols-4">
+        <Stat label="현재 플랜" value={org.plan} />
+        <Stat label="카메라" value={`${org.cameraCount} / ${org.cameraLimit}`} />
         <Stat
-          label="Oylik (USD)"
+          label="월간 (USD)"
           value={PLAN_PRICES_USD[org.plan] === 0 ? "—" : `$${PLAN_PRICES_USD[org.plan]}`}
         />
         <Stat label="Slug" value={org.slug} />
@@ -401,10 +401,10 @@ export function BillingPanel({
               <div>
                 <p className="font-semibold capitalize">{plan}</p>
                 <p className="mt-1 text-xs text-content-muted">
-                  {plan === "trial" && "4 kamera, 14 kun sinov"}
-                  {plan === "starter" && "8 kamera, asosiy detektorlar"}
-                  {plan === "business" && "32 kamera, barcha detektorlar, alertlar"}
-                  {plan === "enterprise" && "256 kamera, edge box, SLA"}
+                  {plan === "trial" && "4대 카메라, 14일 체험"}
+                  {plan === "starter" && "8대 카메라, 기본 감지기"}
+                  {plan === "business" && "32대 카메라, 전체 감지기, 알림"}
+                  {plan === "enterprise" && "256대 카메라, 엣지 박스, SLA"}
                 </p>
               </div>
               <p className="text-lg font-semibold">
@@ -424,7 +424,7 @@ export function BillingPanel({
                   })
                 }
               >
-                {org.plan === plan ? "Joriy" : "Tanlash"}
+                {org.plan === plan ? "현재" : "선택"}
               </Button>
             ) : null}
           </div>
@@ -432,8 +432,7 @@ export function BillingPanel({
       </div>
       {message ? <p className="text-xs text-content-secondary">{message}</p> : null}
       <p className="text-xs text-content-muted">
-        Billing hozircha ichki tarif almashtirish. Stripe integratsiyasi keyingi
-        bosqichda ulanganda shu yerda to&apos;lov oynasi ochiladi.
+        현재는 내부 플랜 전환만 지원합니다. Stripe 연동 후 결제 창이 여기에 표시됩니다.
       </p>
     </div>
   );
@@ -462,20 +461,20 @@ export function ModelsPanel({
     <div className="flex flex-col gap-4">
       <Panel>
         <PanelHeader
-          title="Active learning navbati"
-          description="False positive / true positive kadrlar Roboflow ga yuklanadi"
+          title="액티브 러닝 대기열"
+          description="오탐/정탐 프레임이 Roboflow로 업로드됩니다"
         />
         <ul className="divide-y divide-surface-2">
           {feedback.length === 0 ? (
             <li className="px-5 py-8 text-center text-xs text-content-muted">
-              Hali namuna yo&apos;q. Hodisani &quot;yolg&apos;on signal&quot; deb belgilang.
+              샘플이 없습니다. 이벤트를 "오탐"으로 표시하세요.
             </li>
           ) : (
             feedback.map((row) => (
               <li key={row.detector} className="flex justify-between px-5 py-3 text-sm">
                 <span>{row.detector}</span>
                 <span className="text-content-secondary">
-                  navbat {row.pending} · yuklangan {row.uploaded} · FP {row.falsePositives}
+                  대기 {row.pending} · 업로드 {row.uploaded} · FP {row.falsePositives}
                 </span>
               </li>
             ))
@@ -484,12 +483,11 @@ export function ModelsPanel({
       </Panel>
 
       <Panel>
-        <PanelHeader title="Model registry" />
+        <PanelHeader title="모델 레지스트리" />
         <ul className="divide-y divide-surface-2">
           {models.length === 0 ? (
             <li className="px-5 py-8 text-center text-xs text-content-muted">
-              Model versiyalari yo&apos;q. Roboflow dan export qilib{" "}
-              <code>model_versions</code> jadvaliga yozing.
+              모델 버전이 없습니다. Roboflow에서 export하여 <code>model_versions</code> 테이블에 기록하세요.
             </li>
           ) : (
             models.map((model) => (
@@ -499,12 +497,12 @@ export function ModelsPanel({
                     {model.detector} · {model.version}
                   </p>
                   <p className="text-xs text-content-muted">
-                    {model.roboflow_project ?? "lokal"} ·{" "}
-                    {new Date(model.created_at).toLocaleDateString("uz-UZ")}
+                    {model.roboflow_project ?? "로컬"} ·{" "}
+                    {new Date(model.created_at).toLocaleDateString("ko-KR")}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  {model.is_active ? <Badge tone="success">Faol</Badge> : null}
+                  {model.is_active ? <Badge tone="success">활성</Badge> : null}
                   {canWrite && !model.is_active ? (
                     <Button
                       type="button"
@@ -515,7 +513,7 @@ export function ModelsPanel({
                         })
                       }
                     >
-                      Faollashtirish
+                      활성화
                     </Button>
                   ) : null}
                 </div>
@@ -559,11 +557,11 @@ export function EdgePanel({
             });
           }}
         >
-          <h3 className="text-sm font-semibold">Edge box provisioning</h3>
-          <Field label="Tugun nomi">
-            <Input name="name" required placeholder="Do'kon-12 GPU box" />
+          <h3 className="text-sm font-semibold">엣지 박스 프로비저닝</h3>
+          <Field label="노드 이름">
+            <Input name="name" required placeholder="매장-12 GPU 박스" />
           </Field>
-          <Field label="Obyekt">
+          <Field label="사이트">
             <Select name="siteId" defaultValue="">
               <option value="">—</option>
               {sites.map((site) => (
@@ -576,23 +574,22 @@ export function EdgePanel({
           {error ? <p className="text-xs text-critical">{error}</p> : null}
           {apiKey ? (
             <div className="rounded-lg bg-surface-2 p-3 text-xs">
-              <p className="font-medium text-medium">API kalit (bir marta):</p>
+              <p className="font-medium text-medium">API 키 (한 번만 표시):</p>
               <code className="mt-1 block break-all text-content-primary">{apiKey}</code>
             </div>
           ) : null}
           <Button type="submit" variant="primary" disabled={pending}>
-            Tugun yaratish
+            노드 생성
           </Button>
         </form>
       ) : null}
 
       <Panel>
-        <PanelHeader title="Edge tugunlar" />
+        <PanelHeader title="엣지 노드" />
         <ul className="divide-y divide-surface-2">
           {nodes.length === 0 ? (
             <li className="px-5 py-8 text-center text-xs text-content-muted">
-              Hali edge tugun yo&apos;q. Gibrid rejimda har bir obyektga GPU box
-              biriktiriladi.
+              엣지 노드가 없습니다. 하이브리드 모드에서는 사이트마다 GPU 박스가 연결됩니다.
             </li>
           ) : (
             nodes.map((node) => (
@@ -600,7 +597,7 @@ export function EdgePanel({
                 <div>
                   <p className="font-medium">{node.name}</p>
                   <p className="text-xs text-content-muted">
-                    {node.gpuName ?? "GPU noma'lum"} · {node.cameraCount} kamera
+                    {node.gpuName ?? "GPU 미확인"} · {node.cameraCount}대 카메라
                     {node.lastSeenAt ? (
                       <>
                         {" · "}
@@ -627,13 +624,13 @@ export function AuditPanel({ entries }: { entries: AuditEntry[] }) {
   return (
     <Panel>
       <PanelHeader
-        title="Audit jurnal"
-        description="Kim qaysi videoni ko'rdi / sozlamani o'zgartirdi"
+        title="감사 로그"
+        description="누가 영상을 보거나 설정을 변경했는지"
       />
       <ul className="divide-y divide-surface-2">
         {entries.length === 0 ? (
           <li className="px-5 py-8 text-center text-xs text-content-muted">
-            Hali yozuv yo&apos;q
+            기록이 없습니다
           </li>
         ) : (
           entries.map((entry) => (
@@ -646,7 +643,7 @@ export function AuditPanel({ entries }: { entries: AuditEntry[] }) {
                 <RelativeTime value={entry.createdAt} className="text-content-muted" />
               </div>
               <p className="mt-1 text-content-muted">
-                {entry.userName || entry.userEmail || "tizim"}
+                {entry.userName || entry.userEmail || "시스템"}
                 {entry.ipAddress ? ` · ${entry.ipAddress}` : ""}
               </p>
             </li>

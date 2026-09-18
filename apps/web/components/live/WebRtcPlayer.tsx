@@ -77,7 +77,7 @@ export function WebRtcPlayer({
         connection.connectionState === "failed" ||
         connection.connectionState === "disconnected"
       ) {
-        update("error", "Ulanish uzildi");
+        update("error", "연결이 끊어졌습니다");
       }
     };
 
@@ -105,7 +105,7 @@ export function WebRtcPlayer({
         }
         throw new Error(
           response.status === 404
-            ? "Oqim topilmadi. Kamerani saqlang yoki qayta qo'shing (go2rtc ro'yxati)."
+            ? "스트림을 찾을 수 없습니다. 카메라를 저장하거나 다시 추가하세요 (go2rtc 목록)."
             : detail,
         );
       }
@@ -115,7 +115,7 @@ export function WebRtcPlayer({
         sdp: await response.text(),
       });
     } catch (error) {
-      update("error", error instanceof Error ? error.message : "Noma'lum xato");
+      update("error", error instanceof Error ? error.message : "알 수 없는 오류");
     }
   }, [cameraId, update]);
 
@@ -147,7 +147,7 @@ export function WebRtcPlayer({
         playsInline
         muted={muted}
         className="size-full object-contain"
-        aria-label={`${cameraName} jonli oqimi`}
+        aria-label={`${cameraName} 라이브 스트림`}
       />
 
       {showOverlay && state === "playing" ? (
@@ -158,7 +158,7 @@ export function WebRtcPlayer({
         <div className="absolute inset-0 grid place-items-center bg-surface-0/80 px-4 text-center">
           <div>
             <p className="text-xs font-medium text-content-secondary">
-              {state === "connecting" ? "Ulanmoqda..." : "Oqim mavjud emas"}
+              {state === "connecting" ? "연결 중..." : "스트림 없음"}
             </p>
             {message ? (
               <p className="mt-1 text-[11px] text-content-muted">{message}</p>

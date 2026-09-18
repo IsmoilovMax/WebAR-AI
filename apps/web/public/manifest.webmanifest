@@ -1,13 +1,13 @@
 {
-  "name": "AI Video Analitika",
+  "name": "AI 영상 분석",
   "short_name": "ACS",
-  "description": "Hikvision CCTV uchun real vaqtdagi AI monitoring",
+  "description": "Hikvision CCTV 실시간 AI 모니터링",
   "start_url": "/live",
   "display": "standalone",
-  "background_color": "#141821",
-  "theme_color": "#141821",
+  "background_color": "#15161c",
+  "theme_color": "#15161c",
   "orientation": "any",
-  "lang": "uz",
+  "lang": "ko",
   "icons": [
     {
       "src": "/icons/icon-192.png",

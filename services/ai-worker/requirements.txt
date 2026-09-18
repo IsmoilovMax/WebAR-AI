@@ -24,6 +24,10 @@ onnxruntime==1.20.1
 # GPU uchun yuqoridagi o'rniga:
 # onnxruntime-gpu==1.20.1
 
+# Demografiya: RetinaFace + ArcFace (buffalo_sc). Birinchi ishga tushishda
+# modellarni MODELS_DIR/insightface ga yuklab oladi.
+insightface==0.7.3
+
 # Chekish detektorida qo'l va og'iz geometriyasini tekshirish uchun.
 mediapipe==0.10.20
 

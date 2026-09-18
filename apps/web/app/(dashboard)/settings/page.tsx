@@ -22,15 +22,15 @@ import {
 import { listOrgUsers } from "@/lib/data/users";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Sozlamalar" };
+export const metadata: Metadata = { title: "설정" };
 
 const TABS = [
-  { id: "alerts", label: "Alertlar", permission: "alert:read" as const },
-  { id: "users", label: "Foydalanuvchilar", permission: "user:read" as const },
-  { id: "models", label: "Modellar", permission: "alert:read" as const },
-  { id: "edge", label: "Edge", permission: "billing:read" as const },
-  { id: "billing", label: "Billing", permission: "billing:read" as const },
-  { id: "audit", label: "Audit", permission: "audit:read" as const },
+  { id: "alerts", label: "알림", permission: "alert:read" as const },
+  { id: "users", label: "사용자", permission: "user:read" as const },
+  { id: "models", label: "모델", permission: "alert:read" as const },
+  { id: "edge", label: "엣지", permission: "billing:read" as const },
+  { id: "billing", label: "결제", permission: "billing:read" as const },
+  { id: "audit", label: "감사", permission: "audit:read" as const },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -49,19 +49,19 @@ export default async function SettingsPage({
   ) as TabId | undefined;
 
   const org = await getOrganization(session.orgId);
-  if (!org) throw new Error("Tashkilot topilmadi");
+  if (!org) throw new Error("조직을 찾을 수 없습니다");
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-4">
-      <h1 className="text-lg font-semibold">Sozlamalar</h1>
+      <h1 className="text-lg font-semibold">설정</h1>
 
-      <div className="flex flex-wrap gap-1 rounded-lg bg-surface-1 p-1 ring-1 ring-surface-2">
+      <div className="flex flex-wrap gap-1 rounded bg-surface-1 p-1 ring-1 ring-surface-2">
         {visibleTabs.map((item) => (
           <Link
             key={item.id}
             href={`/settings?tab=${item.id}`}
             className={cn(
-              "rounded-md px-3 py-1.5 text-xs font-medium",
+              "rounded px-3 py-1.5 text-xs font-medium",
               tab === item.id
                 ? "bg-brand/15 text-brand"
                 : "text-content-secondary hover:text-content-primary",

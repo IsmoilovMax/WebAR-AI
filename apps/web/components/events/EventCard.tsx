@@ -8,28 +8,28 @@ import { RelativeTime } from "@/components/ui/RelativeTime";
 import { cn, formatPercent } from "@/lib/utils";
 
 const EVENT_LABELS: Record<string, string> = {
-  person_detected: "Odam aniqlandi",
-  fire: "Yong'in",
-  smoke: "Tutun",
-  fall: "Yiqilish",
-  smoking: "Chekish",
-  zone_intrusion: "Taqiqlangan zonaga kirish",
-  loitering: "Uzoq turib qolish",
-  camera_offline: "Kamera uzildi",
-  camera_online: "Kamera ulandi",
+  person_detected: "얼굴 인식",
+  fire: "화재",
+  smoke: "연기",
+  fall: "낙상",
+  smoking: "흡연",
+  zone_intrusion: "구역 침입",
+  loitering: "배회",
+  camera_offline: "카메라 오프라인",
+  camera_online: "카메라 온라인",
 };
 
 const GENDER_LABELS: Record<string, string> = {
-  male: "Erkak",
-  female: "Ayol",
-  unknown: "Noma'lum",
+  male: "남자",
+  female: "여자",
+  unknown: "미확인",
 };
 
 const AGE_LABELS: Record<string, string> = {
-  young: "Yosh (0-25)",
-  middle: "O'rta (26-50)",
-  senior: "Katta yosh (51+)",
-  unknown: "Noma'lum",
+  young: "어린이",
+  middle: "중년",
+  senior: "노인",
+  unknown: "미확인",
 };
 
 export function EventCard({
@@ -53,7 +53,7 @@ export function EventCard({
       });
 
       if (!response.ok) {
-        setError("Holatni saqlab bo'lmadi");
+        setError("상태를 저장할 수 없습니다");
         return;
       }
 
@@ -78,12 +78,12 @@ export function EventCard({
           <button
             type="button"
             onClick={() => setExpanded((value) => !value)}
-            className="relative size-24 shrink-0 overflow-hidden rounded-md bg-black"
-            aria-label="Snapshotni kattalashtirish"
+            className="relative size-24 shrink-0 overflow-hidden rounded bg-black"
+            aria-label="스냅샷 확대"
           >
             <Image
               src={event.snapshotUrl}
-              alt={`${EVENT_LABELS[event.type] ?? event.type} snapshoti`}
+              alt={`${EVENT_LABELS[event.type] ?? event.type} 스냅샷`}
               fill
               sizes="96px"
               className="object-cover"
@@ -91,8 +91,8 @@ export function EventCard({
             />
           </button>
         ) : (
-          <div className="grid size-24 shrink-0 place-items-center rounded-md bg-surface-2 text-[10px] text-content-muted">
-            Rasm yo&apos;q
+          <div className="grid size-24 shrink-0 place-items-center rounded bg-surface-2 text-[10px] text-content-muted">
+            이미지 없음
           </div>
         )}
 
@@ -102,35 +102,33 @@ export function EventCard({
             <span className="text-sm font-medium">
               {EVENT_LABELS[event.type] ?? event.type}
             </span>
-            {isBeta ? <Badge tone="warning">beta</Badge> : null}
+            {isBeta ? <Badge tone="warning">베타</Badge> : null}
             {event.status === "false_positive" ? (
-              <Badge tone="danger">Yolg&apos;on signal</Badge>
+              <Badge tone="danger">오탐</Badge>
             ) : event.status === "acknowledged" ? (
-              <Badge tone="brand">Ko&apos;rildi</Badge>
+              <Badge tone="brand">확인됨</Badge>
             ) : event.status === "resolved" ? (
-              <Badge tone="success">Tasdiqlandi</Badge>
+              <Badge tone="success">처리됨</Badge>
             ) : null}
           </div>
 
           <p className="mt-1 text-xs text-content-secondary">
             {event.cameraName}
             {event.zoneName ? ` / ${event.zoneName}` : ""}
-            {" - "}
+            {" · "}
             <RelativeTime value={event.confirmedAt} />
           </p>
 
           <p className="mt-1 text-[11px] text-content-muted">
-            Ishonch {formatPercent(event.confidence)}
-            {event.trackId !== null ? ` - kuzatuv #${event.trackId}` : ""}
+            신뢰도 {formatPercent(event.confidence)}
+            {event.trackId !== null ? ` · 추적 #${event.trackId}` : ""}
           </p>
 
           {event.attributes && event.attributes.gender !== "unknown" ? (
             <p className="mt-1 text-[11px] text-content-muted">
-              {GENDER_LABELS[event.attributes.gender]} -{" "}
+              {GENDER_LABELS[event.attributes.gender]} ·{" "}
               {AGE_LABELS[event.attributes.ageBucket]}
-              {/* Namunalar soni ko'rsatiladi: 2 kadr bo'yicha chiqarilgan
-                  xulosaga 40 kadrlik xulosa kabi ishonib bo'lmaydi. */}
-              {event.attributes.samples > 0 ? ` (${event.attributes.samples} kadr)` : ""}
+              {event.attributes.samples > 0 ? ` (${event.attributes.samples}프레임)` : ""}
             </p>
           ) : null}
 
@@ -142,7 +140,7 @@ export function EventCard({
                 onClick={() => setStatus("resolved")}
                 className="px-2 py-1 text-xs"
               >
-                To&apos;g&apos;ri
+                정상
               </Button>
               <Button
                 variant="danger"
@@ -150,7 +148,7 @@ export function EventCard({
                 onClick={() => setStatus("false_positive")}
                 className="px-2 py-1 text-xs"
               >
-                Yolg&apos;on signal
+                오탐
               </Button>
               <Button
                 variant="ghost"
@@ -158,7 +156,7 @@ export function EventCard({
                 onClick={() => setStatus("acknowledged")}
                 className="px-2 py-1 text-xs"
               >
-                Ko&apos;rdim
+                확인
               </Button>
             </div>
           ) : null}

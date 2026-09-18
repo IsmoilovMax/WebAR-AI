@@ -184,14 +184,19 @@ function drawBox(
   ctx.lineWidth = thick;
   ctx.strokeRect(x, y, w, h);
 
-  const title =
-    LABELS_UZ[box.kind] ||
-    box.label ||
-    box.kind;
-  const pct = Math.round(box.confidence * 100);
-  const text = box.subtitle ? `${title} · ${box.subtitle}` : `${title} ${pct}%`;
+  // Person: faqat jins/yosh (남자/여자). "Odam" yozilmaydi.
+  let text = "";
+  if (box.kind === "person" || box.kind === "face") {
+    text = box.subtitle?.trim() || "";
+  } else {
+    const title = LABELS_UZ[box.kind] || box.label || box.kind;
+    const pct = Math.round(box.confidence * 100);
+    text = box.subtitle ? `${title} · ${box.subtitle}` : `${title} ${pct}%`;
+  }
 
-  ctx.font = "600 11px ui-sans-serif, system-ui, sans-serif";
+  if (!text) return;
+
+  ctx.font = "600 11px ui-sans-serif, system-ui, 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif";
   const metrics = ctx.measureText(text);
   const padX = 5;
   const labelH = 16;

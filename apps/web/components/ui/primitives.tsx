@@ -31,7 +31,7 @@ export function PanelHeader({
 type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 
 const BUTTON_VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-brand text-surface-0 hover:bg-brand-strong",
+  primary: "bg-brand text-white hover:bg-brand-strong",
   secondary: "bg-surface-2 text-content-primary hover:bg-surface-3",
   ghost: "text-content-secondary hover:bg-surface-2 hover:text-content-primary",
   danger: "bg-critical/15 text-critical hover:bg-critical/25",
@@ -64,11 +64,11 @@ const SEVERITY_STYLES: Record<EventSeverity, string> = {
 };
 
 const SEVERITY_LABELS: Record<EventSeverity, string> = {
-  critical: "Kritik",
-  high: "Yuqori",
-  medium: "O'rta",
-  low: "Past",
-  info: "Ma'lumot",
+  critical: "긴급",
+  high: "높음",
+  medium: "보통",
+  low: "낮음",
+  info: "정보",
 };
 
 export function SeverityBadge({ severity }: { severity: EventSeverity }) {
@@ -175,12 +175,12 @@ export function Stat({
   };
 
   return (
-    <div className="panel px-4 py-3">
+    <div className="flex flex-col gap-1 border-r border-dashed border-surface-3 px-5 py-3 last:border-r-0">
       <p className="text-xs text-content-muted">{label}</p>
-      <p className={cn("mt-1 text-2xl font-semibold tabular-nums", valueTones[tone])}>
+      <p className={cn("text-2xl font-semibold tabular-nums", valueTones[tone])}>
         {value}
       </p>
-      {hint ? <p className="mt-1 text-[11px] text-content-muted">{hint}</p> : null}
+      {hint ? <p className="text-[11px] text-content-muted">{hint}</p> : null}
     </div>
   );
 }

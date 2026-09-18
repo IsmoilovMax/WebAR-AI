@@ -1,31 +1,32 @@
 @import "tailwindcss";
 
 /*
- * Video nazorat paneli uzoq soatlar davomida, ko'pincha qorong'i xonada
- * ochiq turadi. Shuning uchun sukut bo'yicha to'q mavzu: yorug' fon
- * kadrlar bilan raqobatlashadi va operatorni charchatadi.
+ * Zigbee2MQTT-style operator console: deep charcoal surfaces,
+ * purple accent, tight radius. Built for long dark-room shifts.
  */
 
 @theme {
-  --color-surface-0: oklch(0.16 0.012 265);
-  --color-surface-1: oklch(0.2 0.014 265);
-  --color-surface-2: oklch(0.25 0.016 265);
-  --color-surface-3: oklch(0.31 0.018 265);
+  --color-surface-0: #15161c;
+  --color-surface-1: #1a1b23;
+  --color-surface-2: #23242e;
+  --color-surface-3: #2e303c;
 
-  --color-content-primary: oklch(0.97 0.005 265);
-  --color-content-secondary: oklch(0.75 0.012 265);
-  --color-content-muted: oklch(0.6 0.014 265);
+  --color-content-primary: #f2f2f5;
+  --color-content-secondary: #b8bac6;
+  --color-content-muted: #7c7f8f;
 
-  --color-brand: oklch(0.68 0.16 250);
-  --color-brand-strong: oklch(0.6 0.18 250);
+  --color-brand: #7c4dff;
+  --color-brand-strong: #6a3de8;
 
-  --color-critical: oklch(0.63 0.23 22);
-  --color-high: oklch(0.7 0.19 45);
-  --color-medium: oklch(0.79 0.16 85);
-  --color-low: oklch(0.72 0.16 150);
-  --color-info: oklch(0.7 0.03 265);
+  --color-accent: #e91e8c;
 
-  --radius-panel: 0.75rem;
+  --color-critical: #ef5350;
+  --color-high: #ff9800;
+  --color-medium: #ffc107;
+  --color-low: #66bb6a;
+  --color-info: #90a4ae;
+
+  --radius-panel: 0.375rem;
 }
 
 @layer base {
@@ -41,20 +42,18 @@
   body {
     background-color: var(--color-surface-0);
     color: var(--color-content-primary);
-    font-family: var(--font-geist-sans), system-ui, sans-serif;
+    font-family: var(--font-sans), system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
   }
 
-  /* Klaviatura bilan navigatsiya ko'rinadigan bo'lishi kerak: operator
-     sichqonchasiz ham ishlay olishi mumkin. */
   :focus-visible {
     outline: 2px solid var(--color-brand);
     outline-offset: 2px;
   }
 
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -73,15 +72,13 @@
   border-radius: var(--radius-panel);
 }
 
-/* Kritik hodisa kartasi diqqatni tortishi kerak, ammo miltillash
-   epilepsiya xavfi va charchoq keltiradi - shuning uchun yumshoq puls. */
 @keyframes critical-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 color-mix(in oklch, var(--color-critical) 45%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-critical) 45%, transparent);
   }
   50% {
-    box-shadow: 0 0 0 6px color-mix(in oklch, var(--color-critical) 0%, transparent);
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-critical) 0%, transparent);
   }
 }
 

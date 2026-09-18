@@ -15,8 +15,18 @@ chiqmaydi.
 | `pose.pt` | Yiqilish, chekish geometriyasi | YOLO11-pose, pretrained |
 | `fire_smoke.pt` | Yong'in va tutun | Roboflow da fine-tune qilingan |
 | `cigarette.pt` | Chekish | Roboflow da o'qitilgan |
-| `face.pt` | Demografiya uchun yuz | Yuz detektori |
-| `genderage.onnx` | Jins va yosh | O'z modelingiz (litsenziyaga qarang) |
+| `face.pt` | Demografiya fallback | YOLO yuz (InsightFace yo'q bo'lsa) |
+| `genderage.onnx` | Jins/yosh fallback | YOLO face bilan |
+| `insightface/models/buffalo_sc/` | **Asosiy demografiya** | RetinaFace + ArcFace 512-d + genderage |
+
+### Demografiya (default)
+
+1. **Detection:** RetinaFace (`buffalo_sc`)
+2. **Recognition:** ArcFace 512-d embedding, cosine similarity, threshold **0.42**
+   (faqat xotirada track qayta bog'lash — DB ga yozilmaydi)
+3. **Gender/age:** paketdagi `genderage`
+
+O'chirish / fallback: `ACS_INSIGHTFACE=false` — u holda `face.pt` + `genderage.onnx`.
 
 Bazaviy modellarni olish:
 

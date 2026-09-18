@@ -9,7 +9,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" variant="primary" disabled={pending} className="w-full">
-      {pending ? "Tekshirilmoqda..." : "Kirish"}
+      {pending ? "확인 중..." : "로그인"}
     </Button>
   );
 }
@@ -22,7 +22,7 @@ export function LoginForm({ next }: { next?: string }) {
       <form action={formAction} className="flex flex-col gap-4">
         {next ? <input type="hidden" name="next" value={next} /> : null}
 
-        <Field label="Email">
+        <Field label="이메일">
           <Input
             name="email"
             type="email"
@@ -33,12 +33,12 @@ export function LoginForm({ next }: { next?: string }) {
           />
         </Field>
 
-        <Field label="Parol">
+        <Field label="비밀번호">
           <Input name="password" type="password" autoComplete="current-password" required />
         </Field>
 
         {state.error ? (
-          <p role="alert" className="rounded-lg bg-critical/10 px-3 py-2 text-xs text-critical">
+          <p role="alert" className="rounded-md bg-critical/10 px-3 py-2 text-xs text-critical">
             {state.error}
           </p>
         ) : null}

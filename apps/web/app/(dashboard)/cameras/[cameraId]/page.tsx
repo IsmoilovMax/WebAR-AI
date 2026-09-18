@@ -15,7 +15,7 @@ import { requirePermission } from "@/lib/auth/guard";
 import { getCamera, listZones } from "@/lib/data/cameras";
 import { deleteCameraAction } from "../actions";
 
-export const metadata: Metadata = { title: "Kamera" };
+export const metadata: Metadata = { title: "카메라" };
 
 export default async function CameraDetailPage({
   params,
@@ -35,13 +35,13 @@ export default async function CameraDetailPage({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <Link href="/cameras" className="text-xs text-content-muted hover:text-brand">
-            ← Kameralar
+            ← 장치
           </Link>
           <h1 className="mt-1 text-lg font-semibold">{camera.name}</h1>
           <div className="mt-1 flex items-center gap-2 text-xs text-content-muted">
             <StatusDot status={camera.status} label={camera.status} />
             <span>
-              {camera.host} · kanal {camera.channel}
+              {camera.host} · 채널 {camera.channel}
             </span>
           </div>
         </div>
@@ -55,21 +55,21 @@ export default async function CameraDetailPage({
             }}
           >
             <Button type="submit" variant="danger">
-              O&apos;chirish
+              삭제
             </Button>
           </form>
         ) : null}
       </div>
 
       <Panel className="overflow-hidden">
-        <PanelHeader title="Jonli ko'rinish" />
+        <PanelHeader title="라이브" />
         <div className="aspect-video bg-black">
           <WebRtcPlayer cameraId={camera.id} cameraName={camera.name} />
         </div>
       </Panel>
 
       <Panel>
-        <PanelHeader title="Detektorlar" />
+        <PanelHeader title="감지기" />
         <div className="flex flex-wrap gap-2 px-5 py-4">
           {camera.enabledDetectors.map((detector) => (
             <Badge key={detector} tone="brand">

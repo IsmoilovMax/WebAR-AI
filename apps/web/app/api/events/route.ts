@@ -36,6 +36,9 @@ export async function GET(request: NextRequest) {
 
   const events = await listEvents(auth.session.orgId, {
     types: parsed.data.type,
+    excludeTypes: parsed.data.type?.length
+      ? undefined
+      : ["camera_online", "camera_offline"],
     severities: parsed.data.severity,
     statuses: parsed.data.status,
     cameraIds: parsed.data.camera,

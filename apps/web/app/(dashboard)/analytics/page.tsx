@@ -11,7 +11,7 @@ import {
 } from "@/lib/data/analytics";
 import { cn } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Analitika" };
+export const metadata: Metadata = { title: "대시보드" };
 
 const RANGES = [7, 30, 90] as const;
 
@@ -37,20 +37,20 @@ export default async function AnalyticsPage({
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-semibold">Analitika</h1>
-        <div className="flex gap-1 rounded-lg bg-surface-1 p-1 ring-1 ring-surface-2">
+        <h1 className="text-lg font-semibold">대시보드</h1>
+        <div className="flex gap-1 rounded bg-surface-1 p-1 ring-1 ring-surface-2">
           {RANGES.map((range) => (
             <Link
               key={range}
               href={`/analytics?days=${range}`}
               className={cn(
-                "rounded-md px-3 py-1.5 text-xs font-medium",
+                "rounded px-3 py-1.5 text-xs font-medium",
                 days === range
                   ? "bg-brand/15 text-brand"
                   : "text-content-secondary hover:text-content-primary",
               )}
             >
-              {range} kun
+              {range}일
             </Link>
           ))}
         </div>

@@ -44,10 +44,10 @@ export const ROLE_PERMISSIONS: Record<Role, readonly Permission[]> = {
 };
 
 export const ROLE_LABELS: Record<Role, string> = {
-  owner: "Egasi",
-  manager: "Menejer",
-  operator: "Operator",
-  viewer: "Kuzatuvchi",
+  owner: "소유자",
+  manager: "관리자",
+  operator: "운영자",
+  viewer: "시청자",
 };
 
 export function hasPermission(role: Role, permission: Permission): boolean {

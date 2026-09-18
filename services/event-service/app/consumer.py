@@ -112,14 +112,17 @@ class StreamConsumer:
             await self._handle_event(payload)
 
     async def _handle_event(self, payload: dict[str, Any]) -> None:
-        # Kamera status hodisalari - faqat status yangilanadi.
+        meta = payload.get("meta") or {}
+        # Kamera status: DB ni yangilaydi. silent=true bo'lsa Hodisalar ro'yxatiga yozilmaydi.
         if payload["type"] in {"camera_offline", "camera_online"}:
             status = "online" if payload["type"] == "camera_online" else "offline"
             await self._db.touch_camera(
                 payload["cameraId"],
                 status,
-                (payload.get("meta") or {}).get("reason"),
+                meta.get("reason"),
             )
+            if meta.get("silent"):
+                return
 
         snapshot_key: str | None = None
         event_id_hint = str(uuid4())

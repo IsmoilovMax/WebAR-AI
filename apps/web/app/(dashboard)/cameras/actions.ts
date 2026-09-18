@@ -37,9 +37,9 @@ function parseSiteId(value: FormDataEntryValue | null): string | null {
 
 function formatInputError(error: z.ZodError): string {
   const issue = error.issues[0];
-  if (!issue) return "Ma'lumot noto'g'ri";
+  if (!issue) return "입력값이 올바르지 않습니다";
   if (issue.path[0] === "siteId") {
-    return "Obyekt noto'g'ri. Bo'sh qoldiring yoki ro'yxatdan tanlang.";
+    return "사이트가 올바르지 않습니다. 비워 두거나 목록에서 선택하세요.";
   }
   return issue.message;
 }
@@ -58,7 +58,7 @@ export async function probeCameraAction(formData: FormData): Promise<ActionResul
   } catch (error) {
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Kamerani tekshirib bo'lmadi",
+      error: error instanceof Error ? error.message : "카메라를 확인할 수 없습니다",
     };
   }
 }
@@ -120,7 +120,7 @@ export async function createCameraAction(formData: FormData): Promise<ActionResu
     }
     return {
       ok: false,
-      error: error instanceof Error ? error.message : "Kamerani qo'shib bo'lmadi",
+      error: error instanceof Error ? error.message : "카메라를 추가할 수 없습니다",
     };
   }
 }
@@ -148,7 +148,7 @@ export async function updateCameraAction(
   };
 
   const camera = await updateCamera(session.orgId, cameraId, input);
-  if (!camera) return { ok: false, error: "Kamera topilmadi" };
+  if (!camera) return { ok: false, error: "카메라를 찾을 수 없습니다" };
 
   const secret = password || (await getCameraPassword(session.orgId, cameraId));
   if (secret) {
@@ -169,7 +169,7 @@ export async function updateCameraAction(
 export async function deleteCameraAction(cameraId: string): Promise<ActionResult> {
   const session = await requirePermission("camera:write");
   const ok = await deleteCamera(session.orgId, cameraId);
-  if (!ok) return { ok: false, error: "Kamera topilmadi" };
+  if (!ok) return { ok: false, error: "카메라를 찾을 수 없습니다" };
 
   await unregisterStreams(cameraId);
   await notifyWorkerReload();
@@ -188,7 +188,7 @@ export async function saveZonesAction(
 
   const parsed = z.array(zoneInputSchema).safeParse(JSON.parse(zonesJson));
   if (!parsed.success) {
-    return { ok: false, error: "Zona ma'lumoti noto'g'ri" };
+    return { ok: false, error: "구역 정보가 올바르지 않습니다" };
   }
 
   await replaceZones(session.orgId, cameraId, parsed.data);

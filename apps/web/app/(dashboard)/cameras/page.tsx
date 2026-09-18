@@ -15,7 +15,7 @@ import { getOrganization, listSites } from "@/lib/data/org";
 import { hasPermission } from "@acs/types";
 import { relativeTime } from "@/lib/utils";
 
-export const metadata: Metadata = { title: "Kameralar" };
+export const metadata: Metadata = { title: "장치" };
 
 export default async function CamerasPage() {
   const session = await requirePermission("camera:read");
@@ -31,10 +31,10 @@ export default async function CamerasPage() {
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
       <div className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-lg font-semibold">Kameralar</h1>
+          <h1 className="text-lg font-semibold">장치</h1>
           <p className="mt-1 text-xs text-content-muted">
             {org
-              ? `${org.cameraCount} / ${org.cameraLimit} · ${org.plan} tarif`
+              ? `${org.cameraCount} / ${org.cameraLimit} · ${org.plan} 플랜`
               : null}
           </p>
         </div>
@@ -43,7 +43,7 @@ export default async function CamerasPage() {
       {canWrite ? (
         <section>
           <h2 className="mb-3 text-sm font-semibold text-content-secondary">
-            Yangi kamera
+            새 카메라
           </h2>
           <CameraForm sites={sites} />
         </section>
@@ -51,13 +51,13 @@ export default async function CamerasPage() {
 
       <Panel>
         <PanelHeader
-          title="Ro'yxat"
-          description="Har bir kamera go2rtc va AI worker ga avtomatik ulanadi."
+          title="목록"
+          description="각 카메라는 go2rtc 및 AI 워커에 자동으로 연결됩니다."
         />
         {cameras.length === 0 ? (
           <EmptyState
-            title="Hali kamera yo'q"
-            description="ISAPI orqali tekshirib, Hikvision kamerangizni qo'shing."
+            title="카메라가 없습니다"
+            description="ISAPI로 확인한 후 Hikvision 카메라를 추가하세요."
           />
         ) : (
           <ul className="divide-y divide-surface-2">
@@ -73,7 +73,7 @@ export default async function CamerasPage() {
                       <StatusDot status={camera.status} label={camera.status} />
                     </div>
                     <p className="mt-1 text-xs text-content-muted">
-                      {camera.host}:{camera.rtspPort} · kanal {camera.channel}
+                      {camera.host}:{camera.rtspPort} · 채널 {camera.channel}
                       {camera.siteName ? ` · ${camera.siteName}` : ""}
                       {camera.lastSeenAt
                         ? ` · ${relativeTime(camera.lastSeenAt)}`
@@ -86,7 +86,7 @@ export default async function CamerasPage() {
                         {DETECTOR_LABELS[detector]}
                       </Badge>
                     ))}
-                    {!camera.enabled ? <Badge tone="neutral">O&apos;chiq</Badge> : null}
+                    {!camera.enabled ? <Badge tone="neutral">비활성</Badge> : null}
                   </div>
                 </Link>
               </li>

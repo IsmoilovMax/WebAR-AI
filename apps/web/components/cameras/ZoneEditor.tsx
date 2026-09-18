@@ -7,17 +7,17 @@ import { Button, Field, Input, Select } from "@/components/ui/primitives";
 import { saveZonesAction } from "@/app/(dashboard)/cameras/actions";
 
 const ZONE_LABELS: Record<ZoneKind, string> = {
-  include: "Faqat shu zona",
-  exclude: "Istisno",
-  no_smoking: "Chekish taqiqlangan",
-  restricted: "Cheklangan zona",
+  include: "포함 구역",
+  exclude: "제외 구역",
+  no_smoking: "금연 구역",
+  restricted: "제한 구역",
 };
 
 const COLORS: Record<ZoneKind, string> = {
-  include: "#3b82f6",
+  include: "#7c4dff",
   exclude: "#64748b",
-  no_smoking: "#f59e0b",
-  restricted: "#ef4444",
+  no_smoking: "#ff9800",
+  restricted: "#ef5350",
 };
 
 interface DraftZone {
@@ -44,7 +44,7 @@ export function ZoneEditor({
     })),
   );
   const [draft, setDraft] = useState<[number, number][]>([]);
-  const [name, setName] = useState("Zona 1");
+  const [name, setName] = useState("구역 1");
   const [kind, setKind] = useState<ZoneKind>("restricted");
   const [pending, startTransition] = useTransition();
   const [message, setMessage] = useState<string | null>(null);
@@ -69,15 +69,15 @@ export function ZoneEditor({
 
   function finishZone() {
     if (draft.length < 3) {
-      setError("Kamida 3 ta nuqta kerak");
+      setError("최소 3개의 점이 필요합니다");
       return;
     }
     setZones((prev) => [
       ...prev,
-      { name: name || `Zona ${prev.length + 1}`, kind, polygon: draft, detectors: [] },
+      { name: name || `구역 ${prev.length + 1}`, kind, polygon: draft, detectors: [] },
     ]);
     setDraft([]);
-    setName(`Zona ${zones.length + 2}`);
+    setName(`구역 ${zones.length + 2}`);
     setError(null);
   }
 
@@ -94,25 +94,24 @@ export function ZoneEditor({
         setError(result.error);
         return;
       }
-      setMessage("Zonalar saqlandi");
+      setMessage("구역이 저장되었습니다");
     });
   }
 
   return (
     <div className="panel overflow-hidden">
       <div className="border-b border-surface-2 px-5 py-4">
-        <h2 className="text-sm font-semibold">Aniqlash zonalari</h2>
+        <h2 className="text-sm font-semibold">감지 구역</h2>
         <p className="mt-1 text-xs text-content-muted">
-          Kadr ustiga bosib poligon chizing. Nuqtalar 0..1 oralig&apos;ida
-          saqlanadi — rezolyutsiya o&apos;zgarsa ham joyida qoladi.
+          화면을 클릭하여 폴리곤을 그립니다. 좌표는 0..1로 저장되어 해상도가
+          바뀌어도 위치가 유지됩니다.
         </p>
       </div>
 
       <div className="grid gap-4 p-5 lg:grid-cols-[1fr_280px]">
-        <div className="relative aspect-video overflow-hidden rounded-lg bg-surface-0 ring-1 ring-surface-2">
+        <div className="relative aspect-video overflow-hidden rounded bg-surface-0 ring-1 ring-surface-2">
           <div className="absolute inset-0 grid place-items-center text-xs text-content-muted">
-            Jonli kadr fon sifatida /live da ko&apos;rinadi. Bu yerda zona
-            geometriyasini chizing.
+            라이브 화면은 /live에서 확인하세요. 여기서는 구역 도형을 그립니다.
           </div>
           <svg
             ref={svgRef}
@@ -135,21 +134,21 @@ export function ZoneEditor({
               <polyline
                 points={draft.map(([x, y]) => `${x},${y}`).join(" ")}
                 fill="none"
-                stroke="#22d3ee"
+                stroke="#7c4dff"
                 strokeWidth={0.004}
               />
             ) : null}
             {draft.map(([x, y], index) => (
-              <circle key={index} cx={x} cy={y} r={0.01} fill="#22d3ee" />
+              <circle key={index} cx={x} cy={y} r={0.01} fill="#7c4dff" />
             ))}
           </svg>
         </div>
 
         <div className="flex flex-col gap-3">
-          <Field label="Zona nomi">
+          <Field label="구역 이름">
             <Input value={name} onChange={(e) => setName(e.target.value)} />
           </Field>
-          <Field label="Turi">
+          <Field label="유형">
             <Select
               value={kind}
               onChange={(e) => setKind(e.target.value as ZoneKind)}
@@ -164,10 +163,10 @@ export function ZoneEditor({
 
           <div className="flex flex-wrap gap-2">
             <Button type="button" onClick={finishZone} disabled={draft.length < 3}>
-              Zonani yakunlash
+              구역 완료
             </Button>
             <Button type="button" variant="ghost" onClick={() => setDraft([])}>
-              Bekor
+              취소
             </Button>
           </div>
 
@@ -175,7 +174,7 @@ export function ZoneEditor({
             {zones.map((zone, index) => (
               <li
                 key={`${zone.name}-${index}`}
-                className="flex items-center justify-between rounded-lg bg-surface-2 px-3 py-2"
+                className="flex items-center justify-between rounded bg-surface-2 px-3 py-2"
               >
                 <span>
                   <span
@@ -192,7 +191,7 @@ export function ZoneEditor({
                   className="text-xs text-critical"
                   onClick={() => removeZone(index)}
                 >
-                  O&apos;chirish
+                  삭제
                 </button>
               </li>
             ))}
@@ -202,7 +201,7 @@ export function ZoneEditor({
           {message ? <p className="text-xs text-low">{message}</p> : null}
 
           <Button type="button" variant="primary" disabled={pending} onClick={save}>
-            {pending ? "Saqlanmoqda..." : "Zonalarni saqlash"}
+            {pending ? "저장 중..." : "구역 저장"}
           </Button>
         </div>
       </div>

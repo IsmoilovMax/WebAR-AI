@@ -10,19 +10,17 @@ import { cn } from "@/lib/utils";
 import { WebRtcPlayer } from "./WebRtcPlayer";
 
 const EVENT_LABELS: Record<string, string> = {
-  person_detected: "Odam",
-  fire: "Yong'in",
-  smoke: "Tutun",
-  fall: "Yiqilish",
-  smoking: "Chekish",
-  zone_intrusion: "Zonaga kirish",
-  loitering: "Uzoq turish",
-  camera_offline: "Kamera uzildi",
-  camera_online: "Kamera ulandi",
+  person_detected: "얼굴 인식",
+  fire: "화재",
+  smoke: "연기",
+  fall: "낙상",
+  smoking: "흡연",
+  zone_intrusion: "구역 침입",
+  loitering: "배회",
+  camera_offline: "카메라 오프라인",
+  camera_online: "카메라 온라인",
 };
 
-// Overlay shu vaqtdan keyin yo'qoladi. Operator kadrni ko'rib ulgurishi
-// kerak, ammo eski signal doimiy turmasligi ham kerak.
 const OVERLAY_TTL_MS = 30_000;
 
 export function LiveGrid({ cameras }: { cameras: Camera[] }) {
@@ -45,14 +43,14 @@ export function LiveGrid({ cameras }: { cameras: Camera[] }) {
   if (cameras.length === 0) {
     return (
       <EmptyState
-        title="Kamera qo'shilmagan"
-        description="Boshlash uchun Hikvision kamerangizni qo'shing. Kamera qo'shishdan oldin ISAPI ulanishini tekshirib oling."
+        title="카메라가 없습니다"
+        description="시작하려면 Hikvision 카메라를 추가하세요. 추가 전에 ISAPI 연결을 확인하세요."
         action={
           <Link
             href="/cameras"
-            className="rounded-lg bg-brand px-3 py-2 text-sm font-medium text-surface-0"
+            className="rounded bg-brand px-3 py-2 text-sm font-medium text-white"
           >
-            Kamera qo'shish
+            카메라 추가
           </Link>
         }
       />
@@ -66,14 +64,14 @@ export function LiveGrid({ cameras }: { cameras: Camera[] }) {
           status={state === "open" ? "online" : state === "connecting" ? "degraded" : "offline"}
           label={
             state === "open"
-              ? "Hodisalar oqimi faol"
+              ? "이벤트 스트림 활성"
               : state === "connecting"
-                ? "Ulanmoqda..."
-                : "Oqim uzildi"
+                ? "연결 중..."
+                : "스트림 끊김"
           }
         />
 
-        <div className="flex items-center gap-1" role="group" aria-label="Grid o'lchami">
+        <div className="flex items-center gap-1" role="group" aria-label="그리드 크기">
           {[1, 2, 3].map((count) => (
             <button
               key={count}
@@ -81,7 +79,7 @@ export function LiveGrid({ cameras }: { cameras: Camera[] }) {
               onClick={() => setColumns(count)}
               aria-pressed={columns === count}
               className={cn(
-                "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
+                "rounded px-2.5 py-1 text-xs font-medium transition-colors",
                 columns === count
                   ? "bg-brand/15 text-brand"
                   : "text-content-muted hover:bg-surface-2",

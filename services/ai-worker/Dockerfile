@@ -9,11 +9,13 @@ ENV PYTHONUNBUFFERED=1 \
     # Ultralytics/torch CUDA g'ildiragini tortmasin.
     CUDA_VISIBLE_DEVICES=""
 
-# libgl va libglib: OpenCV uchun. ffmpeg kutubxonalari: PyAV uchun.
+# libgl/libglib: OpenCV. ffmpeg: PyAV. g++/python3-dev: insightface cython.
 RUN apt-get update && apt-get install -y --no-install-recommends \
       libgl1 \
       libglib2.0-0 \
       ffmpeg \
+      g++ \
+      python3-dev \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /srv

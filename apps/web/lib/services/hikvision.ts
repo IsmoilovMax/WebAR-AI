@@ -99,7 +99,7 @@ async function isapiGet(options: IsapiOptions, path: string): Promise<string> {
     ? `Basic ${Buffer.from(`${options.username}:${options.password}`).toString("base64")}`
     : (() => {
         const challenge = parseChallenge(header);
-        if (!challenge) throw new Error("Kamera autentifikatsiya usulini tushunib bo'lmadi");
+        if (!challenge) throw new Error("카메라 인증 방식을 확인할 수 없습니다");
         return buildAuthorization(options.username, options.password, "GET", path, challenge);
       })();
 
@@ -109,7 +109,7 @@ async function isapiGet(options: IsapiOptions, path: string): Promise<string> {
     cache: "no-store",
   });
 
-  if (second.status === 401) throw new Error("Login yoki parol noto'g'ri");
+  if (second.status === 401) throw new Error("로그인 또는 비밀번호가 올바르지 않습니다");
   if (!second.ok) throw new Error(`ISAPI ${path}: HTTP ${second.status}`);
 
   return second.text();
@@ -169,25 +169,25 @@ export async function probeCamera(options: IsapiOptions): Promise<ProbeResult> {
 
     if (width > 1280 || height > 720) {
       warnings.push(
-        `Sub-stream juda katta (${width}x${height}). AI uchun 640x480 yetarli; ` +
-          "kattaroq oqim GPU ni behuda sarflaydi.",
+        `서브스트림이 너무 큽니다 (${width}x${height}). AI에는 640x480이면 충분하며 ` +
+          "더 큰 스트림은 GPU를 낭비합니다.",
       );
     } else if (width > 0 && width < 480) {
       warnings.push(
-        `Sub-stream juda kichik (${width}x${height}). Yuz va sigaret aniqlanmaydi.`,
+        `서브스트림이 너무 작습니다 (${width}x${height}). 얼굴·담배 감지가 어려울 수 있습니다.`,
       );
     }
 
     if (codec.toUpperCase().includes("265")) {
       warnings.push(
-        "Sub-stream H.265 kodekda. Brauzerlar uni WebRTC da ijro eta olmaydi, " +
-          "go2rtc transkodlashi kerak bo'ladi. Iloji bo'lsa H.264 ga o'tkazing.",
+        "서브스트림이 H.265입니다. 브라우저는 WebRTC로 재생하지 못하므로 " +
+          "go2rtc 트랜스코딩이 필요합니다. 가능하면 H.264로 변경하세요.",
       );
     }
   }
 
   if (channels.length === 0) {
-    warnings.push("Oqim kanallari topilmadi. Qurilma NVR bo'lishi mumkin.");
+    warnings.push("스트림 채널을 찾지 못했습니다. NVR일 수 있습니다.");
   }
 
   return {

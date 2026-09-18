@@ -8,31 +8,31 @@ import { useEventStream } from "@/hooks/useEventStream";
 import { EventCard } from "./EventCard";
 
 const TYPE_LABELS: Record<EventType, string> = {
-  person_detected: "Odam",
-  fire: "Yong'in",
-  smoke: "Tutun",
-  fall: "Yiqilish",
-  smoking: "Chekish",
-  zone_intrusion: "Zonaga kirish",
-  loitering: "Uzoq turish",
-  camera_offline: "Kamera uzildi",
-  camera_online: "Kamera ulandi",
+  person_detected: "얼굴 인식",
+  fire: "화재",
+  smoke: "연기",
+  fall: "낙상",
+  smoking: "흡연",
+  zone_intrusion: "구역 침입",
+  loitering: "배회",
+  camera_offline: "카메라 오프라인",
+  camera_online: "카메라 온라인",
 };
 
 const STATUS_OPTIONS: { value: EventStatus | "all"; label: string }[] = [
-  { value: "new", label: "Ko'rilmagan" },
-  { value: "all", label: "Barchasi" },
-  { value: "acknowledged", label: "Ko'rilgan" },
-  { value: "resolved", label: "Tasdiqlangan" },
-  { value: "false_positive", label: "Yolg'on signal" },
+  { value: "new", label: "미확인" },
+  { value: "all", label: "전체" },
+  { value: "acknowledged", label: "확인됨" },
+  { value: "resolved", label: "처리됨" },
+  { value: "false_positive", label: "오탐" },
 ];
 
 const SEVERITY_OPTIONS: { value: EventSeverity | "all"; label: string }[] = [
-  { value: "all", label: "Har qanday muhimlik" },
-  { value: "critical", label: "Kritik" },
-  { value: "high", label: "Yuqori" },
-  { value: "medium", label: "O'rta" },
-  { value: "low", label: "Past" },
+  { value: "all", label: "모든 심각도" },
+  { value: "critical", label: "긴급" },
+  { value: "high", label: "높음" },
+  { value: "medium", label: "보통" },
+  { value: "low", label: "낮음" },
 ];
 
 interface Filters {
@@ -63,9 +63,6 @@ export function EventFeed({
 
   const { events: liveEvents, state } = useEventStream(50);
 
-  // Jonli oqimdan kelgan yangi hodisalar ro'yxat boshiga qo'shiladi.
-  // Filtrlash klient tomonda: server so'rovini takrorlash kechikish
-  // beradi va operator yangi signalni kech ko'radi.
   useEffect(() => {
     if (liveEvents.length === 0) return;
 
@@ -82,6 +79,12 @@ export function EventFeed({
       if (filters.status !== "all" && event.status !== filters.status) return false;
       if (filters.severity !== "all" && event.severity !== filters.severity) return false;
       if (filters.type !== "all" && event.type !== filters.type) return false;
+      if (
+        filters.type === "all" &&
+        (event.type === "camera_online" || event.type === "camera_offline")
+      ) {
+        return false;
+      }
       if (filters.camera !== "all" && event.cameraId !== filters.camera) return false;
       return true;
     });
@@ -94,6 +97,11 @@ export function EventFeed({
     setLoading(true);
     try {
       const params = new URLSearchParams({ before: oldest.confirmedAt, limit: "50" });
+      if (filters.status !== "all") params.set("status", filters.status);
+      if (filters.severity !== "all") params.set("severity", filters.severity);
+      if (filters.type !== "all") params.set("type", filters.type);
+      if (filters.camera !== "all") params.set("camera", filters.camera);
+
       const response = await fetch(`/api/events?${params}`);
       if (!response.ok) return;
 
@@ -107,7 +115,7 @@ export function EventFeed({
     } finally {
       setLoading(false);
     }
-  }, [events]);
+  }, [events, filters]);
 
   const replaceEvent = useCallback((updated: StoredEvent) => {
     setEvents((previous) =>
@@ -119,7 +127,7 @@ export function EventFeed({
     <div className="flex flex-col gap-3">
       <Panel className="flex flex-wrap items-center gap-2 p-3">
         <Select
-          aria-label="Holat bo'yicha filtr"
+          aria-label="상태 필터"
           value={filters.status}
           onChange={(e) =>
             setFilters((f) => ({ ...f, status: e.target.value as Filters["status"] }))
@@ -134,7 +142,7 @@ export function EventFeed({
         </Select>
 
         <Select
-          aria-label="Muhimlik bo'yicha filtr"
+          aria-label="심각도 필터"
           value={filters.severity}
           onChange={(e) =>
             setFilters((f) => ({ ...f, severity: e.target.value as Filters["severity"] }))
@@ -149,14 +157,14 @@ export function EventFeed({
         </Select>
 
         <Select
-          aria-label="Tur bo'yicha filtr"
+          aria-label="유형 필터"
           value={filters.type}
           onChange={(e) =>
             setFilters((f) => ({ ...f, type: e.target.value as Filters["type"] }))
           }
           className="w-auto"
         >
-          <option value="all">Har qanday tur</option>
+          <option value="all">모든 유형</option>
           {EVENT_TYPES.map((type) => (
             <option key={type} value={type}>
               {TYPE_LABELS[type]}
@@ -165,12 +173,12 @@ export function EventFeed({
         </Select>
 
         <Select
-          aria-label="Kamera bo'yicha filtr"
+          aria-label="카메라 필터"
           value={filters.camera}
           onChange={(e) => setFilters((f) => ({ ...f, camera: e.target.value }))}
           className="w-auto"
         >
-          <option value="all">Barcha kameralar</option>
+          <option value="all">모든 카메라</option>
           {cameras.map((camera) => (
             <option key={camera.id} value={camera.id}>
               {camera.name}
@@ -181,15 +189,19 @@ export function EventFeed({
         <div className="ml-auto">
           <StatusDot
             status={state === "open" ? "online" : state === "connecting" ? "degraded" : "offline"}
-            label={state === "open" ? "Jonli" : "Uzilgan"}
+            label={state === "open" ? "실시간" : "연결 끊김"}
           />
         </div>
       </Panel>
 
       {visible.length === 0 ? (
         <EmptyState
-          title="Hodisa yo'q"
-          description="Tanlangan filtrlar bo'yicha hodisa topilmadi. Filtrlarni kengaytiring yoki kameralar ishlayotganini tekshiring."
+          title="이벤트 없음"
+          description={
+            events.length > 0
+              ? "필터에 맞는 이벤트가 없습니다. '전체' 또는 다른 유형을 선택하세요."
+              : "선택한 필터에 해당하는 이벤트가 없습니다. 필터를 넓히거나 카메라 상태를 확인하세요."
+          }
         />
       ) : (
         <div className="flex flex-col gap-2">
@@ -201,7 +213,7 @@ export function EventFeed({
 
       {!exhausted && events.length > 0 ? (
         <Button onClick={loadMore} disabled={loading} className="self-center">
-          {loading ? "Yuklanmoqda..." : "Yana yuklash"}
+          {loading ? "로딩 중..." : "더 보기"}
         </Button>
       ) : null}
     </div>

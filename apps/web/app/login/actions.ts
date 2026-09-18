@@ -7,8 +7,8 @@ import { verifyPassword } from "@/lib/auth/password";
 import { createSession } from "@/lib/auth/session";
 
 const schema = z.object({
-  email: z.string().email("Email formati noto'g'ri"),
-  password: z.string().min(1, "Parol kiriting"),
+  email: z.string().email("이메일 형식이 올바르지 않습니다"),
+  password: z.string().min(1, "비밀번호를 입력하세요"),
   next: z.string().startsWith("/").optional(),
 });
 
@@ -49,11 +49,11 @@ export async function login(_state: LoginState, formData: FormData): Promise<Log
   const valid = await verifyPassword(password, hash);
 
   if (!user || !valid) {
-    return { error: "Email yoki parol noto'g'ri" };
+    return { error: "이메일 또는 비밀번호가 올바르지 않습니다" };
   }
 
   if (!user.org_id) {
-    return { error: "Foydalanuvchi hech qanday tashkilotga biriktirilmagan" };
+    return { error: "사용자에게 연결된 조직이 없습니다" };
   }
 
   await createSession(user.id, user.org_id);
